@@ -26,7 +26,8 @@ namespace Barotrauma
             if (task.Exception != null)
             {
                 var ex = task.Exception.GetInnermost();
-                throw new InvalidOperationException($"Failed to get result from task: task failed with exception {ex.Message} ({ex.GetType()}) {ex.StackTrace}");
+                // Commented out until Neurotrauma is fixed. Do not Commit.
+               // throw new InvalidOperationException($"Failed to get result from task: task failed with exception {ex.Message} ({ex.GetType()}) {ex.StackTrace}");
             }
             if (task is not Task<T>)
             {
