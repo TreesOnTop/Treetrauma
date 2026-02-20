@@ -180,4 +180,7 @@ partial class NetworkingService : INetworkingService, IEventClientRawNetMessageR
             GameMain.Server.ServerPeer.Send(netMessage, connection, deliveryMethod);
         }
     }
+
+    public void Send(IWriteMessage netMessage, NetworkConnection connection = null, DeliveryMethod deliveryMethod = DeliveryMethod.Reliable) 
+        => SendToClient(netMessage, connection, deliveryMethod);
 }

@@ -76,6 +76,9 @@ partial class NetworkingService : INetworkingService, IEventServerConnected, IEv
         GameMain.Client.ClientPeer.Send(netMessage, deliveryMethod);
     }
 
+    public void Send(IWriteMessage netMessage, DeliveryMethod deliveryMethod = DeliveryMethod.Reliable)
+        => SendToServer(netMessage, deliveryMethod);
+
     private void RequestId(NetId netId)
     {
         if (idToPacket.ContainsKey(netId)) { return; }
