@@ -121,12 +121,17 @@ public sealed partial class ConfigService : IConfigService
 
     private const string SaveDataFileName = "SettingsData.xml"; 
     
+    // --- Settings
     private readonly ConcurrentDictionary<(ContentPackage OwnerPackage, string InternalName), ISettingBase> 
         _settingsInstances = new();
     private readonly ConcurrentDictionary<string, Func<(IConfigService ConfigService, IConfigInfo Info), ISettingBase>>
         _instanceFactory = new();
     private readonly ConcurrentDictionary<ContentPackage, ConcurrentBag<ISettingBase>>
         _settingsInstancesByPackage = new();
+
+    // --- Profiles
+    private readonly ConcurrentDictionary<(ContentPackage Package, string ProfileName), IConfigProfileInfo>
+        _settingsProfiles = new();
     
     private IStorageService _storageService;
     private ILoggerService _logger;
@@ -170,7 +175,7 @@ public sealed partial class ConfigService : IConfigService
 
     public async Task<FluentResults.Result> LoadConfigsAsync(ImmutableArray<IConfigResourceInfo> configResources)
     {
-        using var lck = _operationLock.AcquireReaderLock().ConfigureAwait(false).GetAwaiter().GetResult();
+        using var lck = await _operationLock.AcquireReaderLock();
         IService.CheckDisposed(this);
         if (configResources.IsDefaultOrEmpty)
         {
@@ -258,11 +263,47 @@ public sealed partial class ConfigService : IConfigService
 
     public async Task<FluentResults.Result> LoadConfigsProfilesAsync(ImmutableArray<IConfigResourceInfo> configProfileResources)
     {
-#if DEBUG
-        // TODO: Implement profiles.
-        return FluentResults.Result.Ok();
-#endif
-        throw new NotImplementedException();
+        using var _ = await _operationLock.AcquireReaderLock();
+        IService.CheckDisposed(this);
+        if (configProfileResources.IsDefaultOrEmpty)
+        {
+            ThrowHelper.ThrowArgumentNullException($"{nameof(LoadConfigsProfilesAsync)}: {nameof(configProfileResources)} is empty.");
+        }
+
+        var result = new FluentResults.Result();
+        
+        foreach (var resource in configProfileResources)
+        {
+            var r = await _configProfileInfoParserService.TryParseResourcesAsync(resource);
+            if (r.IsFailed)
+            {
+                result.WithErrors(r.Errors);
+                continue;
+            }
+
+            foreach (var info in r.Value)
+            {
+                if (!_settingsProfiles.TryAdd((info.OwnerPackage, info.InternalName), info))
+                {
+                    result.WithErrors(r.Errors);
+                    continue;
+                }
+
+                if (info.InternalName.Equals("default", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    //apply it
+                    foreach (var value in info.ProfileValues)
+                    {
+                        if (_settingsInstances.TryGetValue((info.OwnerPackage, value.SettingName), out var instance))
+                        {
+                            instance.TrySetValue(value.Element);
+                        }
+                    }
+                }
+            }
+        }
+        
+        return result;
     }
 
     public FluentResults.Result LoadSavedValueForConfig(ISettingBase setting)
