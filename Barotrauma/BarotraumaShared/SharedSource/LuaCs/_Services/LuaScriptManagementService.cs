@@ -50,6 +50,7 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService
     private readonly IDefaultLuaRegistrar _defaultLuaRegistrar;
     private readonly IPluginManagementService _pluginManagementService;
     private readonly INetworkingService _networkingService;
+    private readonly IConsoleCommandsService _commandsService;
     //private readonly ILuaCsUtility _luaCsUtility;
 
     public LuaScriptManagementService(
@@ -64,7 +65,8 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService
         LuaGame luaGame,
         IEventService eventService,
         //ILuaCsUtility luaCsUtility,
-        ILuaCsTimer luaCsTimer
+        ILuaCsTimer luaCsTimer,
+        IConsoleCommandsService commandsService
         )
     {
         _luaScriptLoader = loader;
@@ -78,11 +80,31 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService
 
         _luaGame = luaGame;
         _eventService = eventService;
-        //_luaCsNetworking = luaCsNetworking;
-        //_luaCsUtility = luaCsUtility;
+        _commandsService = commandsService;
         _luaCsTimer = luaCsTimer;
 
         RegisterLuaEvents();
+    }
+
+    private void RegisterConsoleCommands(IConsoleCommandsService commands)
+    {
+        commands.RegisterCommand("cl_reloadlua|cl_reloadcs|cl_reloadluacs", "Re-initializes the LuaCs environment.", (string[] args) =>
+        {
+            GameMain.LuaCs.EventService.PublishEvent<IEventReloadAllPackages>(sub => sub.OnReloadAllPackages());
+        });
+
+        commands.RegisterCommand("cl_toggleluadebug", "Toggles the MoonSharp Debug Server.", (string[] args) =>
+        {
+            int port = 41912;
+
+            if (args.Length > 0)
+            {
+                int.TryParse(args[0], out port);
+            }
+
+            throw new NotImplementedException();
+            //GameMain.LuaCs.ToggleDebugger(port);
+        });
     }
 
     public bool IsDisposed { get; private set; }
@@ -400,6 +422,7 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService
 
     public FluentResults.Result Reset()
     {
+        IService.CheckDisposed(this);
         _luaScriptLoader.ClearCaches();
         _userDataService.Reset();
         _luaCsTimer.Reset();
@@ -409,9 +432,10 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService
 
     public void Dispose()
     {
+        IsDisposed = true;
         _userDataService.Dispose();
         _luaScriptLoader.Dispose();
-        IsDisposed = true;
+        _commandsService.Dispose();
     }
 
     public object? GetGlobalTableValue(string tableName)

@@ -53,15 +53,39 @@ namespace Barotrauma
 
             msg.Buttons[0].OnClicked = (GUIButton button, object obj) =>
             {
-                this.IsCsEnabled = true;
-                isCsValueChanged = true;
-                return true;
+                try
+                {
+                    this.IsCsEnabled = true;
+                    isCsValueChanged = true;
+                    CoroutineManager.Invoke(() =>
+                    {
+                        if (CurrentRunState >= RunState.Running)
+                        {
+                            var currentRunState = CurrentRunState;
+                            SetRunState(RunState.LoadedNoExec);
+                            SetRunState(currentRunState);
+                        }
+                    }, 0f);
+                    return true;
+                }
+                finally
+                {
+                    msg.Close();
+                }
             };
 
             msg.Buttons[1].OnClicked = (GUIButton button, object obj) =>
             {
-                this.IsCsEnabled = false;
-                return true;
+                try
+                {
+                    // avoid a TOCTOU scenario.
+                    this.IsCsEnabled = false;
+                    return true;
+                }
+                finally
+                {
+                    msg.Close();
+                }
             };
 
             return isCsValueChanged;

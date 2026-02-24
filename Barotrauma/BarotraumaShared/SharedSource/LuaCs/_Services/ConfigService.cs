@@ -14,6 +14,7 @@ using Barotrauma.LuaCs.Events;
 using Barotrauma.LuaCs;
 using FluentResults;
 using Microsoft.Toolkit.Diagnostics;
+using Microsoft.Xna.Framework;
 
 namespace Barotrauma.LuaCs;
 
@@ -71,12 +72,14 @@ public sealed partial class ConfigService : IConfigService
         _settingsInstances.Clear();
         _instanceFactory.Clear();
         _settingsInstancesByPackage.Clear();
+        _commandsService.Dispose();
         
         _storageService = null;
         _logger = null;
         _eventService = null;
         _configInfoParserService = null;
         _configProfileInfoParserService = null;
+        _commandsService = null;
     }
     
     public FluentResults.Result Reset()
@@ -136,7 +139,7 @@ public sealed partial class ConfigService : IConfigService
     private IStorageService _storageService;
     private ILoggerService _logger;
     private IEventService _eventService;
-    private ILuaCsInfoProvider _luaCsInfoProvider;
+    private IConsoleCommandsService _commandsService;
     private IParserServiceOneToManyAsync<IConfigResourceInfo, IConfigInfo> _configInfoParserService;
     private IParserServiceOneToManyAsync<IConfigResourceInfo, IConfigProfileInfo> _configProfileInfoParserService;
 
@@ -145,16 +148,143 @@ public sealed partial class ConfigService : IConfigService
         IParserServiceOneToManyAsync<IConfigResourceInfo, IConfigInfo> configInfoParserService, 
         IParserServiceOneToManyAsync<IConfigResourceInfo, IConfigProfileInfo> configProfileInfoParserService, 
         IEventService eventService, 
-        ILuaCsInfoProvider luaCsInfoProvider)
+        IConsoleCommandsService commandsService)
     {
         _logger = logger;
         _storageService = storageService;
         _configInfoParserService = configInfoParserService;
         _configProfileInfoParserService = configProfileInfoParserService;
         _eventService = eventService;
-        _luaCsInfoProvider = luaCsInfoProvider;
+        _commandsService = commandsService;
 
         _storageService.UseCaching = true;
+        InjectCommands(commandsService);
+    }
+
+    private void InjectCommands(IConsoleCommandsService commandsService)
+    {
+        commandsService.RegisterCommand("cfg_getvalue", "cfg_getvalue [Content Package] [InternalName] [ValueString]: gets a config value.", (string[] args) =>
+            {
+                if (args.Length < 1)
+                {
+                    _logger.LogError("Please specify the name of the package to set the config.");
+                    return;
+                }
+
+                if (args.Length < 2)
+                {
+                    _logger.LogError("Please specify the name of the config.");
+                    return;
+                }
+
+                var package = ContentPackageManager.RegularPackages.FirstOrDefault(p => p.Name == args[0]);
+                if (package == null)
+                {
+                    _logger.LogError($"Could not find the package {args[0]}!");
+                    return;
+                }
+
+                string internalName = args[1];
+
+                if (!TryGetConfig(package, internalName, out ISettingBase setting))
+                {
+                    _logger.LogError($"Could not get config with name {internalName}");
+                    return;
+                }
+
+                _logger.LogMessage($"config {internalName} value is {setting.GetStringValue()}", Color.Green);
+            }, getValidArgs: () => new[]
+            {
+                 ContentPackageManager.RegularPackages.Select(p => p.Name).ToArray()
+            });
+
+        commandsService.RegisterCommand("cfg_setvalue", "cfg_setvalue [Content Package] [InternalName] [ValueString]: sets a config.", (string[] args) =>
+            {
+                if (args.Length < 1)
+                {
+                    _logger.LogError("Please specify the name of the package to set the config.");
+                    return;
+                }
+
+                if (args.Length < 2)
+                {
+                    _logger.LogError("Please specify the name of the config.");
+                    return;
+                }
+
+                if (args.Length < 3)
+                {
+                    _logger.LogError("Please specify the value to set the config to.");
+                    return;
+                }
+
+                var package = ContentPackageManager.RegularPackages.FirstOrDefault(p => p.Name == args[0]);
+                if (package == null)
+                {
+                    _logger.LogError($"Could not find the package {args[0]}!");
+                    return;
+                }
+
+                string internalName = args[1];
+                string valueString = args[2];
+
+                if (!TryGetConfig(package, internalName, out ISettingBase setting))
+                {
+                    _logger.LogError($"Could not get config with name {internalName}");
+                    return;
+                }
+
+                if (setting.TrySetValue(valueString))
+                {
+                    _logger.LogMessage($"Set config {internalName} value to {valueString}", Color.Green);
+                    if (SaveConfigValue(setting) is { IsFailed: true } res)
+                    {
+                        _logger.LogMessage($"Failed to save new config data to disk. Reasons: {res.ToString()}");
+                    }
+                }
+                else
+                {
+                    _logger.LogError($"Failed to set config value");
+                }
+            }, getValidArgs: () => new[]
+            {
+                 ContentPackageManager.RegularPackages.Select(p => p.Name).ToArray()
+            });
+
+        commandsService.RegisterCommand("cfg_setprofile", "cfg_setprofile [ContentPackage] [InternalProfileName]",
+            (string[] args) =>
+            {
+                if (args.Length < 1 || args[0].IsNullOrWhiteSpace())
+                {
+                    _logger.LogError("Please specify the name of the package of the profile.");
+                    return;
+                }
+
+                if (args.Length < 2 || args[1].IsNullOrWhiteSpace())
+                {
+                    _logger.LogError("Please specify the name of the profile.");
+                    return;
+                }
+                
+                var package = ContentPackageManager.RegularPackages.FirstOrDefault(p => p.Name == args[0], null);
+                if (package == null)
+                {
+                    _logger.LogError($"Could not find the package {args[0]}!");
+                    return;
+                }
+
+                var res = ApplyConfigProfile(package, args[1]);
+                if (res.IsFailed)
+                {
+                    _logger.LogError($"Errors while applying profile {args[1]}!");
+                    _logger.LogResults(res);
+                    return;
+                }
+                _logger.Log($"Profile {args[1]} applied successfully!", Color.Green);
+            }, getValidArgs: () => new[]
+            {
+                ContentPackageManager.RegularPackages.Select(p => p.Name).ToArray()
+            }, false);
     }
 
 
@@ -357,7 +487,38 @@ public sealed partial class ConfigService : IConfigService
 
         return ret;
     }
-    
+
+    public FluentResults.Result ApplyConfigProfile(ContentPackage package, string internalName)
+    {
+        Guard.IsNotNull(package, nameof(package));
+        Guard.IsNotNullOrWhiteSpace(internalName, nameof(internalName));
+        using var _ = _operationLock.AcquireReaderLock().ConfigureAwait(false).GetAwaiter().GetResult();
+        IService.CheckDisposed(this);
+
+        if (!_settingsProfiles.TryGetValue((package, internalName), out var setting))
+        {
+            return FluentResults.Result.Fail($"{nameof(ApplyConfigProfile)}: Could not find profile [{package.Name}.{internalName}]");
+        }
+
+        var result = new FluentResults.Result();
+        
+        foreach (var profileValue in setting.ProfileValues)
+        {
+            if (!_settingsInstances.TryGetValue((package, profileValue.SettingName), out var instance))
+            {
+                result.WithError(new Error($"{nameof(ApplyConfigProfile)}: Could not find setting [{profileValue.SettingName}]."));
+                continue;
+            }
+
+            if (!instance.TrySetValue(profileValue.Element))
+            {
+                result.WithError(new Error($"{nameof(ApplyConfigProfile)}: Failed to set value for [{profileValue.SettingName}]."));
+            }
+        }
+
+        return result;
+    }
+
     public FluentResults.Result SaveConfigValue(ISettingBase setting)
     {
         XDocument cpCfgValues;

@@ -4240,27 +4240,7 @@ namespace Barotrauma
                 var result = GameMain.LuaCs.LuaScriptManagementService.DoString(string.Join(" ", args));
                 GameMain.LuaCs.Logger.LogResults(result.ToResult());
             }));
-
-            commands.Add(new Command("cl_reloadlua|cl_reloadcs|cl_reloadluacs", "Re-initializes the LuaCs environment.", (string[] args) =>
-            {
-                GameMain.LuaCs.EventService.PublishEvent<IEventReloadAllPackages>(sub => sub.OnReloadAllPackages());
-            }));
-
-            commands.Add(new Command("cl_toggleluadebug", "Toggles the MoonSharp Debug Server.", (string[] args) =>
-            {
-                int port = 41912;
-
-                if (args.Length > 0)
-                {
-                    int.TryParse(args[0], out port);
-                }
-
-                throw new NotImplementedException();
-                //GameMain.LuaCs.ToggleDebugger(port);
-            }));
         }
-
-
 
         private static void ReloadWearables(Character character, int variant = 0)
         {
