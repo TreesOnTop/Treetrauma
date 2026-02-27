@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Barotrauma.Extensions;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
@@ -7,65 +8,81 @@ namespace Barotrauma.LuaCs;
 
 public class SettingsMenuSystem : ISettingsMenuSystem
 {
-    private GUIFrame _menuFrame;
-    private GUIButton _menuOpenButton;
-    private readonly Harmony _harmony;
-    private static SettingsMenuSystem _systemInstance;
     
-    public SettingsMenuSystem()
+    private ModsControlsSettingsMenu _controlsMenuInstance;
+    private ModsGameplaySettingsMenu _gameplayMenuInstance;
+    
+    private readonly Harmony _harmony;
+    private readonly IPackageManagementService _packageManagementService;
+    private readonly IConfigService _configService;
+    private static SettingsMenuSystem SystemInstance;
+    
+    public SettingsMenuSystem(IPackageManagementService packageManagementService, IConfigService configService)
     {
-        _systemInstance = this;
+        _packageManagementService = packageManagementService;
+        _configService = configService;
+        SystemInstance = this;
         _harmony = Harmony.CreateAndPatchAll(typeof(SettingsMenuSystem));
     }
 
     [HarmonyPatch(typeof(SettingsMenu), "CreateModsTab"), HarmonyPostfix]
     private static void SettingsMenu_CreateModsTab_Post(SettingsMenu __instance)
     {
-        _systemInstance.CreateSettingsMenu(__instance);
+        SystemInstance.CreateSettingsMenu(__instance);
     }
 
     private void CreateSettingsMenu(SettingsMenu __instance)
     {
-        var tabIndex = (SettingsMenu.Tab)Enum.GetValues<SettingsMenu.Tab>().Length;
-        var contentFrame = CreateNewContentFrame(tabIndex);
-        contentFrame.RectTransform.RelativeSize = Vector2.One;
+        DisposeMenuFrames();
         
-        
+        var tabCount = Enum.GetValues<SettingsMenu.Tab>().Length;
+        var tabGameplayIndex = (SettingsMenu.Tab)tabCount;
+        var tabControlsIndex = (SettingsMenu.Tab)tabCount+1;
 
-        GUIFrame CreateNewContentFrame(SettingsMenu.Tab tab)
+        var gameplayContentFrame = CreateNewContentTab(tabGameplayIndex, __instance, 
+            "SettingsMenuTab.Mods", "LuaCsForBarotrauma.SettingsMenu.ModGameplayButton");
+        var controlsContentFrame = CreateNewContentTab(tabControlsIndex, __instance, 
+            "SettingsMenuTab.Mods", "LuaCsForBarotrauma.SettingsMenu.ModControlsButton");
+
+        _gameplayMenuInstance = new ModsGameplaySettingsMenu(gameplayContentFrame, _packageManagementService, _configService, __instance);
+        _controlsMenuInstance = new ModsControlsSettingsMenu(controlsContentFrame, _packageManagementService, _configService, __instance);
+        
+        
+    }
+    
+    private GUIFrame CreateNewContentTab(SettingsMenu.Tab tab, SettingsMenu settingsMenuInstance, string settingsMenuTabName, string settingMenuHoverTextIdent)
+    {
+        if (settingsMenuInstance.tabContents.TryGetValue(tab, out (GUIButton Button, GUIFrame Content) tabContent))
         {
-            if (__instance.tabContents.TryGetValue(tab, out (GUIButton Button, GUIFrame Content) tabContent))
-            {
-                return tabContent.Content;
-            }
-
-            var contentFr = new GUIFrame(new RectTransform(Vector2.One * 0.95f, __instance.contentFrame.RectTransform, Anchor.Center, Pivot.Center), style: null);
-            
-            var button = new GUIButton(new RectTransform(Vector2.One, __instance.tabber.RectTransform, Anchor.TopLeft, Pivot.TopLeft, scaleBasis: ScaleBasis.Smallest), "", style: $"SettingsMenuTab.Mods")
-            {
-                ToolTip = TextManager.Get($"LuaCsForBarotrauma.SettingsMenu.ModSettingsButton"),
-                OnClicked = (b, _) =>
-                {
-                    __instance.SelectTab(tab);
-                    return false;
-                }
-            };
-            button.RectTransform.MaxSize = RectTransform.MaxPoint;
-            button.Children.ForEach(c => c.RectTransform.MaxSize = RectTransform.MaxPoint);
-            
-            __instance.tabContents.Add(tab, (button, contentFr));
-
-            return contentFr;
+            return tabContent.Content;
         }
+
+        var contentFr = new GUIFrame(new RectTransform(Vector2.One * 0.95f, settingsMenuInstance.contentFrame.RectTransform, Anchor.Center, Pivot.Center), style: null);
+            
+        var button = new GUIButton(new RectTransform(Vector2.One, settingsMenuInstance.tabber.RectTransform, 
+            Anchor.TopLeft, Pivot.TopLeft, scaleBasis: ScaleBasis.Smallest), "", style: $"SettingsMenuTab.Mods")
+        {
+            ToolTip = TextManager.Get($"LuaCsForBarotrauma.SettingsMenu.ModSettingsButton"),
+            OnClicked = (b, _) =>
+            {
+                settingsMenuInstance.SelectTab(tab);
+                return false;
+            }
+        };
+        button.RectTransform.MaxSize = RectTransform.MaxPoint;
+        button.Children.ForEach(c => c.RectTransform.MaxSize = RectTransform.MaxPoint);
+            
+        settingsMenuInstance.tabContents.Add(tab, (button, contentFr));
+
+        return contentFr;
     }
 
-    private void DisposeMenuFrame()
+    private void DisposeMenuFrames()
     {
-        if (_menuFrame is not null)
-        {
-            _menuFrame.Parent.RemoveChild(_menuFrame);
-            _menuFrame = null;
-        }
+        _controlsMenuInstance?.Dispose();
+        _gameplayMenuInstance?.Dispose();
+        _controlsMenuInstance = null;
+        _gameplayMenuInstance = null;
     }
     
     #region DISPOSAL
@@ -76,7 +93,7 @@ public class SettingsMenuSystem : ISettingsMenuSystem
         {
             return;
         }
-        DisposeMenuFrame();
+        DisposeMenuFrames();
         GC.SuppressFinalize(this);
     }
     private int _isDisposed = 0;

@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<infotexts language="English" nowhitespace="false" translatedname="English">
+  <LuaCsForBarotrauma.SettingsMenu.ModControlsButton>Mod Controls Settings</LuaCsForBarotrauma.SettingsMenu.ModControlsButton>
+  <LuaCsForBarotrauma.SettingsMenu.ModGameplayButton>Mod Gameplay Settings</LuaCsForBarotrauma.SettingsMenu.ModGameplayButton>
+  <LuaCsForBarotrauma.Setting.DisableErrorGUIOverlay>Suppress GUI Popup on Error</LuaCsForBarotrauma.Setting.DisableErrorGUIOverlay>
+  <LuaCsForBarotrauma.Setting.IsCsEnabled>Are C# Mods Allowed</LuaCsForBarotrauma.Setting.IsCsEnabled>
+  <LuaCsForBarotrauma.Setting.HideUserNamesInLogs>Hide Local OS Account Name In Logs</LuaCsForBarotrauma.Setting.HideUserNamesInLogs>
+  <LuaCsForBarotrauma.Setting.LocalDataSavePath>Where to Save Local Data</LuaCsForBarotrauma.Setting.LocalDataSavePath>
+</infotexts>
