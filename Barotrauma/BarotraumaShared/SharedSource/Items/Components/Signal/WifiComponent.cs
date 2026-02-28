@@ -232,7 +232,7 @@ namespace Barotrauma.Items.Components
         public void TransmitSignal(Signal signal, bool sentFromChat)
         {
             bool? should = null;
-            GameMain.LuaCs.EventService.PublishEvent<IEventWifiSignalTransmitted>(x => should = x.OnWifiSignalTransmitted(this, signal, sentFromChat) ?? should);
+            LuaCsSetup.Instance.EventService.PublishEvent<IEventWifiSignalTransmitted>(x => should = x.OnWifiSignalTransmitted(this, signal, sentFromChat) ?? should);
             if (should != null && should.Value) { return; }
 
             bool chatMsgSent = false;

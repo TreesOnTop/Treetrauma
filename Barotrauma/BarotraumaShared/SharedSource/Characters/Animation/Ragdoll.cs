@@ -859,7 +859,7 @@ namespace Barotrauma
                         float impactDamage = GetImpactDamage(impact, impactTolerance);
 
                         float? should = null;
-                        GameMain.LuaCs.EventService.PublishEvent<IEventChangeFallDamage>(x => should = x.OnChangeFallDamage(impactDamage, character, impactPos, velocity) ?? should);
+                        LuaCsSetup.Instance.EventService.PublishEvent<IEventChangeFallDamage>(x => should = x.OnChangeFallDamage(impactDamage, character, impactPos, velocity) ?? should);
 
                         if (should != null)
 						{

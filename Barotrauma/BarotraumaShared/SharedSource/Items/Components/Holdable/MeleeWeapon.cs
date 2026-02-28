@@ -436,7 +436,7 @@ namespace Barotrauma.Items.Components
             Structure targetStructure = target.UserData as Structure ?? targetFixture.UserData as Structure;
             Item targetItem = target.UserData is Holdable h ? h.Item : target.UserData as Item ?? targetFixture.UserData as Item;
             Entity targetEntity = targetCharacter ?? targetStructure ?? targetItem ?? target.UserData as Entity;
-            GameMain.LuaCs.EventService.PublishEvent<IEventMeleeWeaponHandleImpact>(x => x.OnMeleeWeaponHandleImpact(this, target));
+            LuaCsSetup.Instance.EventService.PublishEvent<IEventMeleeWeaponHandleImpact>(x => x.OnMeleeWeaponHandleImpact(this, target));
 
             if (Attack != null)
             {

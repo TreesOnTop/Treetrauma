@@ -658,7 +658,7 @@ namespace Barotrauma
             }
 
             bool? should = null;
-            GameMain.LuaCs.EventService.PublishEvent<IEventCharacterApplyDamage>(x => should = x.OnCharacterApplyDamage(this, attackResult, hitLimb, allowStacking) ?? should);
+            LuaCsSetup.Instance.EventService.PublishEvent<IEventCharacterApplyDamage>(x => should = x.OnCharacterApplyDamage(this, attackResult, hitLimb, allowStacking) ?? should);
             if (should != null && should.Value) { return; }
             
             foreach (Affliction newAffliction in attackResult.Afflictions)
@@ -830,7 +830,7 @@ namespace Barotrauma
             if (Character.Params.Health.ImmunityIdentifiers.Contains(newAffliction.Identifier)) { return; }
 
             bool? should = null;
-            GameMain.LuaCs.EventService.PublishEvent<IEventCharacterApplyAffliction>(x => should = x.OnCharacterApplyAffliction(this, limbHealth, newAffliction, allowStacking) ?? should);
+            LuaCsSetup.Instance.EventService.PublishEvent<IEventCharacterApplyAffliction>(x => should = x.OnCharacterApplyAffliction(this, limbHealth, newAffliction, allowStacking) ?? should);
             if (should != null && should.Value) { return; }
 
             Affliction existingAffliction = null;

@@ -60,7 +60,7 @@ public partial class LoggerService : ILoggerService
                     if (!_isInsideLogCall)
                     {
                         _isInsideLogCall = true;
-                        GameMain.LuaCs?.EventService.PublishEvent<IEventServerLog>(x => x.OnServerLog(logMessage, log.MessageType));
+                        LuaCsSetup.Instance?.EventService.PublishEvent<IEventServerLog>(x => x.OnServerLog(logMessage, log.MessageType));
                         _isInsideLogCall = false;
                     }
                 }

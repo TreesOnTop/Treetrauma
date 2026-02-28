@@ -22,8 +22,16 @@ namespace Barotrauma
     partial class LuaCsSetup : IDisposable, IEventScreenSelected, IEventEnabledPackageListChanged, 
         IEventReloadAllPackages
     {
-        public LuaCsSetup()
+        private static LuaCsSetup _luaCsSetup;
+        public static LuaCsSetup Instance => _luaCsSetup ??= new LuaCsSetup();
+
+        private LuaCsSetup()
         {
+            if (_luaCsSetup != null)
+            {
+                throw new Exception("Tried to create another LuaCsSetup instance");
+            }
+
             // == startup
             _servicesProvider = SetupServicesProvider();
             _runStateMachine = SetupStateMachine();
@@ -432,6 +440,8 @@ namespace Barotrauma
                 Console.WriteLine(e);
                 throw;
             }
+
+            _luaCsSetup = null;
             
             GC.SuppressFinalize(this);
         }

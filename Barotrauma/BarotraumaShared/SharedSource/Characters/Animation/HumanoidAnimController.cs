@@ -1306,11 +1306,11 @@ namespace Barotrauma
                         //increase oxygen and clamp it above zero 
                         // -> the character should be revived if there are no major afflictions in addition to lack of oxygen
                         target.Oxygen = Math.Max(target.Oxygen + 10.0f, 10.0f);
-                        GameMain.LuaCs.EventService.PublishEvent<IEventHumanCPRSuccess>(x => x.OnCharacterCPRSuccess(this));
+                        LuaCsSetup.Instance.EventService.PublishEvent<IEventHumanCPRSuccess>(x => x.OnCharacterCPRSuccess(this));
                     }
                     else
                     {
-                        GameMain.LuaCs.EventService.PublishEvent<IEventHumanCPRFailed>(x => x.OnCharacterCPRFailed(this));
+                        LuaCsSetup.Instance.EventService.PublishEvent<IEventHumanCPRFailed>(x => x.OnCharacterCPRFailed(this));
                     }
                 }
             }

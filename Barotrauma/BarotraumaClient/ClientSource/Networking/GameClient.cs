@@ -3004,7 +3004,7 @@ namespace Barotrauma.Networking
         public override void AddChatMessage(ChatMessage message)
         {
             bool? should = null;
-            GameMain.LuaCs.EventService.PublishEvent<IEventChatMessage>(x => should = x.OnChatMessage(message.Text, message.SenderClient, message.Type, message) ?? should);
+            LuaCsSetup.Instance.EventService.PublishEvent<IEventChatMessage>(x => should = x.OnChatMessage(message.Text, message.SenderClient, message.Type, message) ?? should);
             if (should != null && should.Value) { return; }
 
             if (string.IsNullOrEmpty(message.Text)) { return; }

@@ -100,7 +100,7 @@ namespace Barotrauma.Networking
                 (recipientSpectating || ChatMessage.CanUseRadio(recipient.Character, out recipientRadio)))
             {
                 bool? canUse = null;
-                GameMain.LuaCs.EventService.PublishEvent<IEventCanUseVoiceRadio>(x => canUse = x.OnCanUseVoiceRadio(sender, recipient) ?? canUse);
+                LuaCsSetup.Instance.EventService.PublishEvent<IEventCanUseVoiceRadio>(x => canUse = x.OnCanUseVoiceRadio(sender, recipient) ?? canUse);
 
                 if (canUse != null)
                 {
@@ -121,7 +121,7 @@ namespace Barotrauma.Networking
             }
 
             float range = 1.0f;
-            GameMain.LuaCs.EventService.PublishEvent<IEventChangeLocalVoiceRange>(x => range = x.OnChangeLocalVoiceRange(sender, recipient) ?? range);
+            LuaCsSetup.Instance.EventService.PublishEvent<IEventChangeLocalVoiceRange>(x => range = x.OnChangeLocalVoiceRange(sender, recipient) ?? range);
 
             if (recipientSpectating)
             {

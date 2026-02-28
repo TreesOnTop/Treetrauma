@@ -223,7 +223,7 @@ namespace Barotrauma
 
         private static bool IsCommandPermitted(Identifier command, GameClient client)
         {
-            if (GameMain.LuaCs.Game.IsCustomCommandPermitted(command)) { return true; }
+            if (LuaCsSetup.Instance.Game.IsCustomCommandPermitted(command)) { return true; }
 
             switch (command.Value.ToLowerInvariant())
             {
@@ -4231,14 +4231,14 @@ namespace Barotrauma
                     return;
                 }
 
-                if (GameMain.LuaCs.CurrentRunState != RunState.Running)
+                if (LuaCsSetup.Instance.CurrentRunState != RunState.Running)
                 {
                     ThrowError("LuaCs not initialized, use the console command cl_reloadluacs to force initialization.");
                     return;
                 }
 
-                var result = GameMain.LuaCs.LuaScriptManagementService.DoString(string.Join(" ", args));
-                GameMain.LuaCs.Logger.LogResults(result.ToResult());
+                var result = LuaCsSetup.Instance.LuaScriptManagementService.DoString(string.Join(" ", args));
+                LuaCsSetup.Instance.Logger.LogResults(result.ToResult());
             }));
         }
 

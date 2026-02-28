@@ -90,7 +90,7 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService
     {
         commands.RegisterCommand("cl_reloadlua|cl_reloadcs|cl_reloadluacs", "Re-initializes the LuaCs environment.", (string[] args) =>
         {
-            GameMain.LuaCs.EventService.PublishEvent<IEventReloadAllPackages>(sub => sub.OnReloadAllPackages());
+            LuaCsSetup.Instance.EventService.PublishEvent<IEventReloadAllPackages>(sub => sub.OnReloadAllPackages());
         });
 
         commands.RegisterCommand("cl_toggleluadebug", "Toggles the MoonSharp Debug Server.", (string[] args) =>

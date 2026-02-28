@@ -3895,7 +3895,7 @@ namespace Barotrauma
             }
 
             bool? should = null;
-            GameMain.LuaCs.EventService.PublishEvent<IEventItemReadPropertyChange>(x => should = x.OnItemReadPropertyChange(this, property, parentObject, allowEditing, sender) ?? should);
+            LuaCsSetup.Instance.EventService.PublishEvent<IEventItemReadPropertyChange>(x => should = x.OnItemReadPropertyChange(this, property, parentObject, allowEditing, sender) ?? should);
             if (should != null && should.Value) { return; }
 
             Type type = property.PropertyType;

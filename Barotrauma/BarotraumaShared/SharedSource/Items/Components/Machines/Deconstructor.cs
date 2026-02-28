@@ -335,7 +335,7 @@ namespace Barotrauma.Items.Components
             }
 
             bool? should = null;
-            GameMain.LuaCs.EventService.PublishEvent<IEventItemDeconstructed>(x => should = x.OnItemDeconstructed(targetItem, this, user, allowRemove) ?? should);
+            LuaCsSetup.Instance.EventService.PublishEvent<IEventItemDeconstructed>(x => should = x.OnItemDeconstructed(targetItem, this, user, allowRemove) ?? should);
             if (should == true) { return; }
 
             if (targetItem.AllowDeconstruct && allowRemove)

@@ -35,9 +35,6 @@ namespace Barotrauma
             set { world = value; }
         }
 
-        private static LuaCsSetup _luaCs;
-        public static LuaCsSetup LuaCs => _luaCs ??= new LuaCsSetup();
-
         public static GameServer Server;
         public static NetworkMember NetworkMember
         {
@@ -115,7 +112,7 @@ namespace Barotrauma
 
             MainThread = Thread.CurrentThread;
 
-            LuaCs.GetType();
+            LuaCsSetup.Instance.GetType();
         }
 
         public void Init()
@@ -367,9 +364,9 @@ namespace Barotrauma
                     CoroutineManager.Update(paused: false, (float)Timing.Step);
 
                     performanceCounterTimer.Stop();
-                    if (GameMain.LuaCs.PerformanceCounter.EnablePerformanceCounter)
+                    if (LuaCsSetup.Instance.PerformanceCounter.EnablePerformanceCounter)
                     {
-                        GameMain.LuaCs.PerformanceCounter.AddElapsedTicks(new SimplePerformanceData("Update", performanceCounterTimer.ElapsedTicks));
+                        LuaCsSetup.Instance.PerformanceCounter.AddElapsedTicks(new SimplePerformanceData("Update", performanceCounterTimer.ElapsedTicks));
                     }
                     performanceCounterTimer.Reset();
 
@@ -455,10 +452,9 @@ namespace Barotrauma
             ShouldRun = false;
             try
             {
-                if (_luaCs is not null)
+                if (LuaCsSetup.Instance is not null)
                 {
-                    _luaCs.Dispose();
-                    _luaCs = null;
+                    LuaCsSetup.Instance.Dispose();
                 }
             }
             catch (Exception e)

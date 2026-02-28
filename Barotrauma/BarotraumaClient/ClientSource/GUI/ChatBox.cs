@@ -415,7 +415,7 @@ namespace Barotrauma
             if (GameMain.IsSingleplayer)
             {
                 bool? should = null;
-                GameMain.LuaCs.EventService.PublishEvent<IEventChatMessage>(x => should = x.OnChatMessage(message.Text, message.SenderClient, message.Type, message) ?? should);
+                LuaCsSetup.Instance.EventService.PublishEvent<IEventChatMessage>(x => should = x.OnChatMessage(message.Text, message.SenderClient, message.Type, message) ?? should);
                 if (should != null && should.Value) { return; }
             }
 

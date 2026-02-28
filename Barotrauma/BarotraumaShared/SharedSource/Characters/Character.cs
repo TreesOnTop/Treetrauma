@@ -3388,13 +3388,13 @@ namespace Barotrauma
             {
                 for (int i = 0; i < CharacterList.Count; i++)
                 {
-                    if (GameMain.LuaCs.Game.UpdatePriorityCharacters.Contains(CharacterList[i])) continue;
+                    if (LuaCsSetup.Instance.Game.UpdatePriorityCharacters.Contains(CharacterList[i])) continue;
 
                     CharacterList[i].Update(deltaTime * CharacterUpdateInterval, cam);
                 }
             }
 
-            foreach (Character character in GameMain.LuaCs.Game.UpdatePriorityCharacters)
+            foreach (Character character in LuaCsSetup.Instance.Game.UpdatePriorityCharacters)
             {
                 if (character.Removed) { continue; }
                 Debug.Assert(character is { Removed: false });

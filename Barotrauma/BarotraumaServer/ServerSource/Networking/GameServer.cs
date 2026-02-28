@@ -440,7 +440,7 @@ namespace Barotrauma.Networking
                          (permadeathMode && (!character.IsDead || character.CauseOfDeath?.Type == CauseOfDeathType.Disconnected)));
                     if (!character.IsDead)
                     {
-                        if (!GameMain.LuaCs.Game.disableDisconnectCharacter)
+                        if (!LuaCsSetup.Instance.Game.disableDisconnectCharacter)
                         {
                             character.KillDisconnectedTimer += deltaTime;
                             character.SetStun(1.0f);
@@ -3178,7 +3178,7 @@ namespace Barotrauma.Networking
             }
 
             TraitorManager.Initialize(GameMain.GameSession.EventManager, Level.Loaded);
-            if (GameMain.LuaCs.Game.overrideTraitors)
+            if (LuaCsSetup.Instance.Game.overrideTraitors)
             {
                 TraitorManager.Enabled = false;
             }
@@ -3512,7 +3512,7 @@ namespace Barotrauma.Networking
             }
 
             bool? result = null;
-            GameMain.LuaCs.EventService.PublishEvent<IEventTryClientChangeName>(x => result = x.OnTryClienChangeName(c, newName, newJob, newTeam) ?? result);
+            LuaCsSetup.Instance.EventService.PublishEvent<IEventTryClientChangeName>(x => result = x.OnTryClienChangeName(c, newName, newJob, newTeam) ?? result);
 
             if (result != null)
             {
@@ -3964,7 +3964,7 @@ namespace Barotrauma.Networking
                 senderName = null;
                 senderCharacter = null;
             }
-            else if (type == ChatMessageType.Radio && !GameMain.LuaCs.Game.overrideSignalRadio)
+            else if (type == ChatMessageType.Radio && !LuaCsSetup.Instance.Game.overrideSignalRadio)
             {
                 //send to chat-linked wifi components
                 Signal s = new Signal(message, sender: senderCharacter, source: senderRadio.Item);
@@ -4771,7 +4771,7 @@ namespace Barotrauma.Networking
         {
             if (GameMain.Server == null || !GameMain.Server.ServerSettings.SaveServerLogs) { return; }
 
-            GameMain.LuaCs?.EventService.PublishEvent<IEventServerLog>(x => x.OnServerLog(line, messageType));
+            LuaCsSetup.Instance?.EventService.PublishEvent<IEventServerLog>(x => x.OnServerLog(line, messageType));
 
             GameMain.Server.ServerSettings.ServerLog.WriteLine(line, messageType);
 

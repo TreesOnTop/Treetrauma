@@ -1291,14 +1291,14 @@ namespace Barotrauma
 
             commands.Add(new Command("lua", "lua: Runs a string.", (string[] args) =>
             {
-                var result = GameMain.LuaCs.LuaScriptManagementService.DoString(string.Join(" ", args));
-                GameMain.LuaCs.Logger.LogResults(result.ToResult());
+                var result = LuaCsSetup.Instance.LuaScriptManagementService.DoString(string.Join(" ", args));
+                LuaCsSetup.Instance.Logger.LogResults(result.ToResult());
             }));
 
             commands.Add(new Command("reloadlua|reloadcs|reloadluacs", "Re-initializes the LuaCs environment.", (string[] args) =>
             {
                 //GameMain.LuaCs.Initialize();
-                GameMain.LuaCs.EventService.PublishEvent<IEventReloadAllPackages>(sub => sub.OnReloadAllPackages());
+                LuaCsSetup.Instance.EventService.PublishEvent<IEventReloadAllPackages>(sub => sub.OnReloadAllPackages());
             }));
 
             commands.Add(new Command("toggleluadebug", "Toggles the MoonSharp Debug Server.", (string[] args) =>

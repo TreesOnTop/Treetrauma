@@ -89,7 +89,7 @@ namespace Barotrauma.Networking
             if (flaggedAsSpam) { return; }
 
             bool? should = null;
-            GameMain.LuaCs.EventService.PublishEvent<IEventChatMessage>(x => should = x.OnChatMessage(txt, c, type, ChatMessage.Create(c.Name, txt, type, null, c)) ?? should);
+            LuaCsSetup.Instance.EventService.PublishEvent<IEventChatMessage>(x => should = x.OnChatMessage(txt, c, type, ChatMessage.Create(c.Name, txt, type, null, c)) ?? should);
             if (should != null && should.Value) { return; }
 
             if (type == ChatMessageType.Order)

@@ -24,8 +24,6 @@ namespace Barotrauma
 {
     class GameMain : Game
     {
-        private static LuaCsSetup _luaCs;
-        public static LuaCsSetup LuaCs => _luaCs ??= new LuaCsSetup();
         public static bool ShowFPS;
         public static bool ShowPerf;
         public static bool DebugDraw;
@@ -298,7 +296,7 @@ namespace Barotrauma
 
             Window.FileDropped += OnFileDropped;
 
-            LuaCs.GetType();
+            LuaCsSetup.Instance.GetType();
         }
 
         public static void ExecuteAfterContentFinishedLoading(Action action)
@@ -1296,10 +1294,9 @@ namespace Barotrauma
             CreatureMetrics.Save();
             try
             {
-                if (_luaCs is not null)
+                if (LuaCsSetup.Instance is not null)
                 {
-                    _luaCs.Dispose();
-                    _luaCs = null;
+                    LuaCsSetup.Instance.Dispose();
                 }
             }
             catch (Exception e)

@@ -886,7 +886,7 @@ namespace Barotrauma
             }
 
             bool? should = null;
-            GameMain.LuaCs.EventService.PublishEvent<IEventGapOxygenUpdate>(x => should = x.OnGapOxygenUpdate(this, hull1, hull2) ?? should);
+            LuaCsSetup.Instance.EventService.PublishEvent<IEventGapOxygenUpdate>(x => should = x.OnGapOxygenUpdate(this, hull1, hull2) ?? should);
             if (should != null && should.Value) return;
 
             float totalOxygen = hull1.Oxygen + hull2.Oxygen;
