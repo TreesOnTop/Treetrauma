@@ -75,7 +75,6 @@ env:
     System.Reflection.Metadata.dll
     System.Runtime.CompilerServices.Unsafe.dll
     mscordaccore_amd64_amd64_*
-    Lua
     LocalMods/LuaCsForBarotrauma
 
 jobs:
