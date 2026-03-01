@@ -276,7 +276,7 @@ namespace Barotrauma
                 SetRunState(RunState.LoadedNoExec);
             }
             
-            this.Logger.LogResults(PackageManagementService.SyncLoadedPackagesList(packages));
+            this.Logger.LogResults(PackageManagementService.SyncLoadedPackagesList(GetLuaCsEnabledPackagesList(packages)));
             SetRunState(state); // restore
         }
         
@@ -290,8 +290,11 @@ namespace Barotrauma
         }
 
         private ImmutableArray<ContentPackage> GetEnabledPackagesList()
+            => GetLuaCsEnabledPackagesList(ContentPackageManager.EnabledPackages.Regular
+                .ToImmutableArray<ContentPackage>());
+        
+        private ImmutableArray<ContentPackage> GetLuaCsEnabledPackagesList(ImmutableArray<ContentPackage> enabledRegular)
         {
-            var enabledRegular = ContentPackageManager.EnabledPackages.Regular.ToImmutableArray<ContentPackage>();
             if (!enabledRegular.Any(
                     p => p.Name.Equals("LuaCsForBarotrauma", StringComparison.InvariantCultureIgnoreCase) 
                          || p.Name.Equals("Lua for Barotrauma", StringComparison.InvariantCultureIgnoreCase)))
