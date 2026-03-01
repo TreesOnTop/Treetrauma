@@ -2,8 +2,13 @@
 <infotexts language="English" nowhitespace="false" translatedname="English">
   <LuaCsForBarotrauma.SettingsMenu.ModControlsButton>Mod Controls Settings</LuaCsForBarotrauma.SettingsMenu.ModControlsButton>
   <LuaCsForBarotrauma.SettingsMenu.ModGameplayButton>Mod Gameplay Settings</LuaCsForBarotrauma.SettingsMenu.ModGameplayButton>
-  <LuaCsForBarotrauma.Setting.DisableErrorGUIOverlay>Suppress GUI Popup on Error</LuaCsForBarotrauma.Setting.DisableErrorGUIOverlay>
-  <LuaCsForBarotrauma.Setting.IsCsEnabled>Are C# Mods Allowed</LuaCsForBarotrauma.Setting.IsCsEnabled>
-  <LuaCsForBarotrauma.Setting.HideUserNamesInLogs>Hide Local OS Account Name In Logs</LuaCsForBarotrauma.Setting.HideUserNamesInLogs>
-  <LuaCsForBarotrauma.Setting.LocalDataSavePath>Where to Save Local Data</LuaCsForBarotrauma.Setting.LocalDataSavePath>
+  <!-- Settings -->
+  <LuaCsForBarotrauma.DisableErrorGUIOverlay.DisplayName>Suppress GUI Popup on Error</LuaCsForBarotrauma.DisableErrorGUIOverlay.DisplayName>
+  <LuaCsForBarotrauma.DisableErrorGUIOverlay.DisplayCategory>General</LuaCsForBarotrauma.DisableErrorGUIOverlay.DisplayCategory>
+  <LuaCsForBarotrauma.IsCsEnabled.DisplayName>Are C# Mods Allowed</LuaCsForBarotrauma.IsCsEnabled.DisplayName>
+  <LuaCsForBarotrauma.IsCsEnabled.DisplayCategory>General</LuaCsForBarotrauma.IsCsEnabled.DisplayCategory>
+  <LuaCsForBarotrauma.HideUserNamesInLogs.DisplayName>Hide Local OS Account Name In Logs</LuaCsForBarotrauma.HideUserNamesInLogs.DisplayName>
+  <LuaCsForBarotrauma.HideUserNamesInLogs.DisplayCategory>General</LuaCsForBarotrauma.HideUserNamesInLogs.DisplayCategory>
+  <LuaCsForBarotrauma.LocalDataSavePath.DisplayName>Where to Save Local Data</LuaCsForBarotrauma.LocalDataSavePath.DisplayName>
+  <LuaCsForBarotrauma.LocalDataSavePath.DisplayCategory>General</LuaCsForBarotrauma.LocalDataSavePath.DisplayCategory>
 </infotexts>
