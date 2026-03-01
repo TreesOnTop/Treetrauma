@@ -1,15 +1,25 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System.Collections.Immutable;
+using Microsoft.Xna.Framework;
 using System.Linq;
+using Barotrauma.LuaCs.Data;
 
 namespace Barotrauma.LuaCs;
 
 internal sealed class ModsGameplaySettingsMenu : ModsSettingsMenu
 {
+    private readonly ImmutableArray<ISettingBase> _settingsInstancesGameplay;
+    
     public ModsGameplaySettingsMenu(GUIFrame contentFrame, 
         IPackageManagementService packageManagementService, 
         IConfigService configService, 
         SettingsMenu settingsMenuInstance) : base(contentFrame, packageManagementService, configService, settingsMenuInstance)
     {
+
+        _settingsInstancesGameplay = configService.GetDisplayableConfigs()
+            .Where(s => s is not ISettingControl)
+            .ToImmutableArray();
+        
+        
         var mainLayoutGroup = new GUILayoutGroup(new RectTransform(new Vector2(1f, 1f), contentFrame.RectTransform, Anchor.Center), false, Anchor.TopLeft);
         // page title
         var menuTitleLayoutGroup = new GUILayoutGroup(
@@ -30,7 +40,7 @@ internal sealed class ModsGameplaySettingsMenu : ModsSettingsMenu
         {
             OnTextChangedDelegate = (btn, txt) =>
             {
-                // TODO: Execute filter here
+                GenerateDisplayFromFilter(txt);
                 return true;
             }
         };
@@ -45,21 +55,20 @@ internal sealed class ModsGameplaySettingsMenu : ModsSettingsMenu
         var cpList = packageManagementService.GetAllLoadedPackages().OrderBy(cp => cp.Name == "Vanilla" ? 0 : 1).ThenBy(cp => cp.Name).ToList();
         var modSelectDropDown = GUIUtil.Dropdown<ContentPackage>(modCategoryDisplayGroup, cp => cp.Name == "Vanilla" ? "All" : cp.Name, null, cpList, cpList[0], cp =>
         {
-            // TODO: filter selections by adding it to the search bar
+            // TODO: apply filter text
         }, Vector2.One, 2);
-
-
+        
         void GenerateDisplayFromFilter(string text)
         {
-
+            
         }
 
-        void GenerateCategoryListDisplay(GUILayoutGroup layoutGroup)
+        void GenerateCategoryListDisplay(GUILayoutGroup layoutGroup, ImmutableArray<ISettingBase> settings)
         {
 
         }
 
-        void GenerateSettingsListDisplay(GUILayoutGroup layoutGroup) 
+        void GenerateSettingsListDisplay(GUILayoutGroup layoutGroup, ImmutableArray<ISettingBase> settings) 
         {
 
         }

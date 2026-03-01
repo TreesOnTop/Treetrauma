@@ -65,7 +65,7 @@ public class SettingEntry<T> : SettingBase, ISettingBase<T>, INetworkSyncVar whe
         {
             return false;
         }
-        
+        OnValueChanged?.Invoke(this);
 #if CLIENT
         if (GameMain.IsMultiplayer && SyncType is NetSync.ClientOneWay or NetSync.TwoWay)
         {
@@ -94,6 +94,11 @@ public class SettingEntry<T> : SettingBase, ISettingBase<T>, INetworkSyncVar whe
         
         Value = value;
         return true;
+    }
+
+    protected override void OnDispose()
+    {
+        ValueChangePredicate = null;
     }
 
     public override Type GetValueType() => typeof(T);
@@ -134,6 +139,8 @@ public class SettingEntry<T> : SettingBase, ISettingBase<T>, INetworkSyncVar whe
 
         return !isFailed && TrySetValue(typeConvertedValue);
     }
+
+    public override event Action<ISettingBase> OnValueChanged;
 
     public override OneOf<string, XElement> GetSerializableValue() => Value.ToString();
     

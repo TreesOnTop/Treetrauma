@@ -8,31 +8,23 @@ using OneOf;
 
 namespace Barotrauma.LuaCs.Configuration;
 
-public class SettingControl : ISettingControl
+public class SettingControl : SettingBase, ISettingControl
 {
-    public string InternalName { get; }
-    public ContentPackage OwnerPackage { get; }
-    public bool Equals(ISettingBase other)
+    public SettingControl(IConfigInfo configInfo) : base(configInfo)
     {
-        throw new NotImplementedException();
     }
 
-    public void Dispose()
+    protected override void OnDispose()
     {
-        throw new NotImplementedException();
+        OnValueChanged = null;
     }
 
-    public IConfigDisplayInfo GetDisplayInfo()
-    {
-        throw new NotImplementedException();
-    }
+    public override Type GetValueType() => typeof(KeyOrMouse);
+    public override string GetStringValue() => Value.ToString();
 
-    public Type GetValueType() => typeof(KeyOrMouse);
-    public string GetStringValue() => Value.ToString();
+    public override string GetDefaultStringValue() => new KeyOrMouse(Keys.NumLock).ToString();
 
-    public string GetDefaultStringValue() => new KeyOrMouse(Keys.NumLock).ToString();
-
-    public bool TrySetValue(OneOf<string, XElement> value)
+    public override bool TrySetValue(OneOf<string, XElement> value)
     {
         var newVal = value.Match<KeyOrMouse>(
             (string v) => GetKeyOrMouse(v), 
@@ -77,12 +69,8 @@ public class SettingControl : ISettingControl
 
     }
 
-    public event Action<ISettingBase> OnValueChanged;
-    public OneOf<string, XElement> GetSerializableValue()
-    {
-        return Value.ToString();
-    }
-
+    public override event Action<ISettingBase> OnValueChanged;
+    public override OneOf<string, XElement> GetSerializableValue() => Value.ToString();
     public KeyOrMouse Value { get; private set; } = new KeyOrMouse(Keys.NumLock);
     
     public bool TrySetValue(KeyOrMouse value)

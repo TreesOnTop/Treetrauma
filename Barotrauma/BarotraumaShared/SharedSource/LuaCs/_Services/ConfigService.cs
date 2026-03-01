@@ -339,6 +339,7 @@ public sealed partial class ConfigService : IConfigService
         var toProcessDocs = taskResults
             .Where(tr => !tr.IsDefaultOrEmpty)
             .SelectMany(tr => tr)
+            .Where(icf => icf is not null)
             .ToImmutableArray();
 
         var instanceQueue = new Queue<(IConfigInfo configInfo, Func<(IConfigService ConfigService, IConfigInfo Info), ISettingBase> factory)>();
@@ -604,6 +605,7 @@ public sealed partial class ConfigService : IConfigService
             result.WithReasons(_eventService.PublishEvent<IEventSettingInstanceLifetime>(sub => sub.OnSettingInstanceDisposed(setting)).Reasons);
             try
             {
+                _settingsInstances.TryRemove((setting.OwnerPackage, setting.InternalName), out _);
                 setting.Dispose();
             }
             catch (Exception e)
