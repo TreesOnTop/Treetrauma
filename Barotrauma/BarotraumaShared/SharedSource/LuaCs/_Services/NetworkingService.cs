@@ -127,8 +127,18 @@ internal partial class NetworkingService : INetworkingService
 
     public void Receive(string netIdString, NetMessageReceived callback) => Receive(new NetId(netIdString), callback);
     public void Receive(Guid netIdGuid, NetMessageReceived callback) => Receive(new NetId(netIdGuid.ToString()), callback);
-    public IWriteMessage Start(string netIdString) => Start(new NetId(netIdString));
+    public IWriteMessage Start(string netIdString)
+    {
+        if (netIdString == null)
+        {
+            // idk why but Lua calls this method with null instead of the Start method with no arguments
+            return new WriteOnlyMessage();
+        }
+
+        return Start(new NetId(netIdString));
+    }
     public IWriteMessage Start(Guid netIdGuid) => Start(new NetId(netIdGuid.ToString()));
+    public IWriteMessage Start() => new WriteOnlyMessage();
 
     internal void Receive(NetId netId, NetMessageReceived callback)
     {

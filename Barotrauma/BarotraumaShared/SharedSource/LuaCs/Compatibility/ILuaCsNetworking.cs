@@ -15,6 +15,7 @@ internal interface ILuaCsNetworking : ILuaCsShim
     int FileSenderMaxPacketsPerUpdate { get; set; }
     void ClientWriteLobby(Client client);
     void UpdateClientPermissions(Client client);
+    IWriteMessage Start();
     void Send(IWriteMessage mesage, NetworkConnection connection = null, DeliveryMethod deliveryMethod = DeliveryMethod.Reliable);
 #elif CLIENT
     void Send(IWriteMessage mesage, DeliveryMethod deliveryMethod = DeliveryMethod.Reliable);
