@@ -94,7 +94,7 @@ internal sealed class ModsGameplaySettingsMenu : ModsSettingsMenu
                 .OrderBy(cp => cp.Name)
                 .ToImmutableArray();
             var packageSelectionList = GUIUtil.Dropdown<ContentPackage>(layoutGroup, cp => cp.Name, null,
-                packages, packages[0], cp =>
+                packages, packages.Length > 0 ? packages[0] : null, cp =>
                 {
                     _selectedContentPackage = cp;
                     _selectedCategory = string.Empty;
