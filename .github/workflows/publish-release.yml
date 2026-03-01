@@ -68,6 +68,7 @@ env:
     OneOf.dll
     FluentResults.dll
     Basic.Reference.Assemblies.Net80.dll
+    Microsoft.Extensions.Logging.Abstractions.dll
     Microsoft.Toolkit.Diagnostics.dll
     Microsoft.CodeAnalysis.CSharp.dll
     Microsoft.CodeAnalysis.dll
