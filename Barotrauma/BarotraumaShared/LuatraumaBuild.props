@@ -1,20 +1,30 @@
 <Project>
-	<Target Name="CopyPublicizedFiles" AfterTargets="Build">
-        <ItemGroup>
-            <PublicizedAssemblies Include="$(TargetDir)\Publicized\**\*.dll"/>
-        </ItemGroup>
+	<Target Name="CopyPublicizedFilesOnBuild" AfterTargets="Build">
         <Copy
-                SourceFiles="@(PublicizedAssemblies)"
-                DestinationFolder="$(TargetDir)\LocalMods\LuaCsForBarotrauma\Publicized\%(RecursiveDir)"
+                SourceFiles="$(TargetDir)\Publicized\BarotraumaCore.dll"
+                DestinationFiles="$(TargetDir)\LocalMods\LuaCsForBarotrauma\Publicized\BarotraumaCore.dll"
+        />
+        <Copy Condition="$(DefineConstants.Contains('CLIENT'))"
+              SourceFiles="$(TargetDir)\Publicized\Barotrauma.dll"
+              DestinationFiles="$(TargetDir)\LocalMods\LuaCsForBarotrauma\Publicized\Barotrauma.dll"
+        />
+        <Copy   Condition="$(DefineConstants.Contains('SERVER'))"
+                SourceFiles="$(TargetDir)\Publicized\DedicatedServer.dll"
+                DestinationFiles="$(TargetDir)\LocalMods\LuaCsForBarotrauma\Publicized\DedicatedServer.dll"
         />
     </Target>
     <Target Name="CopyPublicizedFilesOnPublish" AfterTargets="Publish">
-        <ItemGroup>
-            <PublicizedAssemblies Include="$(PublishDir)\Publicized\**\*.dll"/>
-        </ItemGroup>
         <Copy
-                SourceFiles="@(PublicizedAssemblies)"
-                DestinationFolder="$(PublishDir)\LocalMods\LuaCsForBarotrauma\Publicized\%(RecursiveDir)"
+                SourceFiles="$(PublishDir)\Publicized\BarotraumaCore.dll"
+                DestinationFiles="$(PublishDir)\LocalMods\LuaCsForBarotrauma\Publicized\BarotraumaCore.dll"
+        />
+        <Copy   Condition="$(DefineConstants.Contains('CLIENT'))"
+                SourceFiles="$(PublishDir)\Publicized\Barotrauma.dll"
+                DestinationFiles="$(PublishDir)\LocalMods\LuaCsForBarotrauma\Publicized\Barotrauma.dll"
+        />
+        <Copy   Condition="$(DefineConstants.Contains('SERVER'))"
+                SourceFiles="$(PublishDir)\Publicized\DedicatedServer.dll"
+                DestinationFiles="$(PublishDir)\LocalMods\LuaCsForBarotrauma\Publicized\DedicatedServer.dll"
         />
     </Target>
 </Project>
