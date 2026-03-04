@@ -1,6 +1,6 @@
 ﻿namespace Barotrauma.LuaCs;
 
-internal sealed class ModsControlsSettingsMenu : ModsSettingsMenu
+internal sealed class ModsControlsSettingsMenu : ModsSettingsMenuBase
 {
     public ModsControlsSettingsMenu(GUIFrame contentFrame, 
         IPackageManagementService packageManagementService, 

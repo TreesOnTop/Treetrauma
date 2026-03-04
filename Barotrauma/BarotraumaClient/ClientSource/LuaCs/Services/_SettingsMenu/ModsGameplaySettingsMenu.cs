@@ -3,10 +3,11 @@ using System.Collections.Immutable;
 using Microsoft.Xna.Framework;
 using System.Linq;
 using Barotrauma.LuaCs.Data;
+// ReSharper disable ObjectCreationAsStatement
 
 namespace Barotrauma.LuaCs;
 
-internal sealed class ModsGameplaySettingsMenu : ModsSettingsMenu
+internal sealed class ModsGameplaySettingsMenu : ModsSettingsMenuBase
 {
     private readonly ImmutableArray<ISettingBase> _settingsInstancesGameplay;
     // menu vars
@@ -57,65 +58,121 @@ internal sealed class ModsGameplaySettingsMenu : ModsSettingsMenu
         _modCategoryDisplayGroup.RectTransform.RelativeSize = new Vector2(0.3f, 1f);
         _settingsDisplayGroup.RectTransform.RelativeSize = new Vector2(0.7f, 1f);
 
-        GenerateCategoryListDisplay(_modCategoryDisplayGroup, GetDisplayCategoriesList());
+        GenerateCategoryListDisplay(_modCategoryDisplayGroup, GetTargetPackagesList(), GetDisplayCategoriesList());
         GenerateSettingsListDisplay(_settingsDisplayGroup, GetDisplaySettingsList());
         
         void GenerateDisplayFromFilter(string text)
         {
             _selectedSearchQuery = text;
-            GenerateCategoryListDisplay(_modCategoryDisplayGroup, GetDisplayCategoriesList());
+            GenerateCategoryListDisplay(_modCategoryDisplayGroup, GetTargetPackagesList(), GetDisplayCategoriesList());
             GenerateSettingsListDisplay(_settingsDisplayGroup, GetDisplaySettingsList());
         }
+        
+        string GetLocalizedString(string identifier)
+        {
+            var lstr = TextManager.Get(identifier);
+            return lstr.IsNullOrWhiteSpace() ? "General" : lstr.Value;
+        }
 
+        // Filters by selected package and query text
         ImmutableArray<string> GetDisplayCategoriesList()
         {
-            return _settingsInstancesGameplay
-                .Select(s => s.GetDisplayInfo().DisplayCategory)
+            return GetFilteredSettingsList()
+                .Select(s => GetLocalizedString(s.GetDisplayInfo().DisplayCategory))
                 .Distinct()
                 .ToImmutableArray();
         }
 
-        ImmutableArray<ISettingBase> GetDisplaySettingsList()
+        // Filters by query text
+        ImmutableArray<ContentPackage> GetTargetPackagesList()
         {
             return _settingsInstancesGameplay
+                .Where(s => SettingMatchesQuery(s, _selectedSearchQuery))
+                .Select(s => s.OwnerPackage)
+                .Distinct()
+                .ToImmutableArray();
+        }
+
+        // Filters by selected package, query text, and selected category.
+        ImmutableArray<ISettingBase> GetDisplaySettingsList()
+        {
+            return GetFilteredSettingsList()
                 .Where(s => _selectedCategory.IsNullOrWhiteSpace() 
-                            || s.GetDisplayInfo().DisplayCategory == _selectedCategory)
+                            || GetLocalizedString(s.GetDisplayInfo().DisplayCategory) == _selectedCategory)
+                .ToImmutableArray();
+        }
+
+        // Filters by selected package and by query text.
+        ImmutableArray<ISettingBase> GetFilteredSettingsList()
+        {
+            return _settingsInstancesGameplay
+                .Where(s => SettingMatchesQuery(s, _selectedSearchQuery))
                 .Where(s => _selectedContentPackage is null 
+                            || _selectedContentPackage == ContentPackageManager.VanillaCorePackage // vanilla is treated as all packages
                             || s.OwnerPackage == _selectedContentPackage)
                 .ToImmutableArray();
         }
+        
+        
+        bool SettingMatchesQuery(ISettingBase setting, string queryText)
+        {
+            if (queryText.IsNullOrWhiteSpace())
+            {
+                return true;
+            }
+            
+            queryText = queryText.ToLowerInvariant().Trim();
 
-        void GenerateCategoryListDisplay(GUILayoutGroup layoutGroup, ImmutableArray<string> categoryIdents)
+            if (setting.InternalName.ToLowerInvariant().Trim().Contains(queryText) || setting.OwnerPackage.Name.ToLowerInvariant().Trim().Contains(queryText))
+            {
+                return true;
+            }
+
+            var displayInfo = setting.GetDisplayInfo();
+            return TextManager.Get(displayInfo.DisplayName).Value.ToLowerInvariant().Trim().Contains(queryText)
+                || TextManager.Get(displayInfo.DisplayCategory).Value.ToLowerInvariant().Trim().Contains(queryText)
+                || TextManager.Get(displayInfo.Description).Value.ToLowerInvariant().Trim().Contains(queryText)
+                || TextManager.Get(displayInfo.Tooltip).Value.ToLowerInvariant().Trim().Contains(queryText);
+        }
+
+        string GetPackageName(ContentPackage package)
+        {
+            return package is null || package == ContentPackageManager.VanillaCorePackage ? "All" : package.Name;
+        }
+
+        void GenerateCategoryListDisplay(GUILayoutGroup layoutGroup, ImmutableArray<ContentPackage> packagesList, 
+            ImmutableArray<string> categories)
         {
             layoutGroup.ClearChildren();
-
-            var packages = _settingsInstancesGameplay.Select(s => s.OwnerPackage)
-                .Distinct()
-                .OrderBy(cp => cp.Name)
-                .ToImmutableArray();
-            var packageSelectionList = GUIUtil.Dropdown<ContentPackage>(layoutGroup, cp => cp.Name, null,
-                packages, packages.Length > 0 ? packages[0] : null, cp =>
+            var packageSelectionList = GUIUtil.Dropdown<ContentPackage>(layoutGroup, cp => GetPackageName(cp), null,
+                packagesList, packagesList.Length > 0 ? packagesList[0] : null, cp =>
                 {
-                    _selectedContentPackage = cp;
-                    _selectedCategory = string.Empty;
-                    GenerateCategoryListDisplay(_modCategoryDisplayGroup, GetDisplayCategoriesList());
+                    _selectedContentPackage = cp == ContentPackageManager.VanillaCorePackage ? null : cp;
+                    _selectedCategory = string.Empty; 
+                    GenerateCategoryListDisplay(_modCategoryDisplayGroup, GetTargetPackagesList(), GetDisplayCategoriesList());
                     GenerateSettingsListDisplay(_settingsDisplayGroup, GetDisplaySettingsList());
                 }, new Vector2(1f, 0.07f));
             var containerBox = new GUIListBox(new RectTransform(new Vector2(1f, 0.93f), layoutGroup.RectTransform));
-            float size_y = MathF.Max(categoryIdents.Length * 0.122f, 1f);
+            float size_y = MathF.Max(categories.Length * 0.122f, 1f);
             var displayedCategoriesFrame = new GUIFrame(new RectTransform(new Vector2(1f, size_y), containerBox.Content.RectTransform), style: null, color: Color.Black)
             {
                 CanBeFocused = false
             };
             var displayCategoriesLayout = new GUILayoutGroup(new RectTransform(Vector2.One, displayedCategoriesFrame.RectTransform));
 
-            foreach (var category in categoryIdents)
+            foreach (var category in categories)
             {
                 DebugConsole.Log(category);
-                new GUIButton(new RectTransform(new Vector2(1f, 0.122f), displayCategoriesLayout.RectTransform), text: TextManager.Get(category))
+                var btn = new GUIButton(new RectTransform(new Vector2(1f, 0.122f), displayCategoriesLayout.RectTransform), 
+                    text: category, color: Color.TransparentBlack)
                 {
                     CanBeFocused = true,
                     CanBeSelected = true,
+                    TextColor = Color.PeachPuff,
+                    HoverColor = new Color(50, 50, 50, 255),
+                    HoverTextColor = Color.White,
+                    SelectedColor = new Color(50, 50, 50, 255),
+                    SelectedTextColor = Color.White,
                     OnPressed = () =>
                     {
                         _selectedCategory = category;
@@ -124,8 +181,6 @@ internal sealed class ModsGameplaySettingsMenu : ModsSettingsMenu
                     }
                 };
             }
-
-            
         }
 
         void GenerateSettingsListDisplay(GUILayoutGroup layoutGroup, ImmutableArray<ISettingBase> settings) 

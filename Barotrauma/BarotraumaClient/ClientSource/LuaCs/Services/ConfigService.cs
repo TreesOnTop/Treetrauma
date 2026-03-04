@@ -18,6 +18,8 @@ public sealed partial class ConfigService
         return _settingsInstances.Values
             .Where(s => !s.IsDisposed)
             .Where(s => s.GetDisplayInfo().ShowInMenus)
+            .Where(s => !GameMain.IsMultiplayer || s.GetConfigInfo().NetSync != NetSync.ServerAuthority)
+            .Where(s => s.GetConfigInfo().EditableStates >= _infoProvider.CurrentRunState)
             .ToImmutableArray();
     }
 }

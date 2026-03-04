@@ -17,6 +17,7 @@ public abstract class SettingBase : ISettingBase
     public string InternalName => ConfigInfo.InternalName;
     public ContentPackage OwnerPackage => ConfigInfo.OwnerPackage;
 
+    public IConfigInfo GetConfigInfo() => ConfigInfo;
     #if CLIENT
     public IConfigDisplayInfo GetDisplayInfo() => ConfigInfo;
     #endif

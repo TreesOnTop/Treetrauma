@@ -4,14 +4,14 @@ using Microsoft.Xna.Framework;
 
 namespace Barotrauma.LuaCs;
 
-internal abstract class ModsSettingsMenu : IDisposable
+internal abstract class ModsSettingsMenuBase : IDisposable
 {
     public GUIFrame ContentFrame { get; private set; }
     protected IPackageManagementService PackageManagementService { get; private set; }
     protected IConfigService ConfigService { get; private set; }
     protected SettingsMenu SettingsMenuInstance { get; private set; }
     
-    protected ModsSettingsMenu(GUIFrame contentFrame, 
+    protected ModsSettingsMenuBase(GUIFrame contentFrame, 
         IPackageManagementService packageManagementService, 
         IConfigService configService, SettingsMenu settingsMenuInstance)
     {

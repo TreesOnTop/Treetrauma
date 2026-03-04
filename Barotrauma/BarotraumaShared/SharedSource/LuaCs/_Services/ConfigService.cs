@@ -80,6 +80,7 @@ public sealed partial class ConfigService : IConfigService
         _configInfoParserService = null;
         _configProfileInfoParserService = null;
         _commandsService = null;
+        _infoProvider = null;
     }
     
     public FluentResults.Result Reset()
@@ -140,6 +141,7 @@ public sealed partial class ConfigService : IConfigService
     private ILoggerService _logger;
     private IEventService _eventService;
     private IConsoleCommandsService _commandsService;
+    private ILuaCsInfoProvider _infoProvider;
     private IParserServiceOneToManyAsync<IConfigResourceInfo, IConfigInfo> _configInfoParserService;
     private IParserServiceOneToManyAsync<IConfigResourceInfo, IConfigProfileInfo> _configProfileInfoParserService;
 
@@ -148,7 +150,8 @@ public sealed partial class ConfigService : IConfigService
         IParserServiceOneToManyAsync<IConfigResourceInfo, IConfigInfo> configInfoParserService, 
         IParserServiceOneToManyAsync<IConfigResourceInfo, IConfigProfileInfo> configProfileInfoParserService, 
         IEventService eventService, 
-        IConsoleCommandsService commandsService)
+        IConsoleCommandsService commandsService,
+        ILuaCsInfoProvider infoProvider)
     {
         _logger = logger;
         _storageService = storageService;
@@ -156,6 +159,7 @@ public sealed partial class ConfigService : IConfigService
         _configProfileInfoParserService = configProfileInfoParserService;
         _eventService = eventService;
         _commandsService = commandsService;
+        _infoProvider = infoProvider;
 
         _storageService.UseCaching = true;
         InjectCommands(commandsService);

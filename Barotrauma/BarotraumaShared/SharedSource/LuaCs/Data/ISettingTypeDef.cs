@@ -26,6 +26,7 @@ public interface ISettingBase : IDataInfo, IEquatable<ISettingBase>, IDisposable
         T CreateInstance([NotNull]IConfigInfo configInfo, Func<OneOf<string, XElement, object>, bool> valueChangePredicate);
     }
     
+    IConfigInfo GetConfigInfo();
     #if CLIENT
     IConfigDisplayInfo GetDisplayInfo();
     #endif

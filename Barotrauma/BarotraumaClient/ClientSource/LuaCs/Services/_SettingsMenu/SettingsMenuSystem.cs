@@ -42,7 +42,7 @@ public class SettingsMenuSystem : ISettingsMenuSystem
         var gameplayContentFrame = CreateNewContentTab(tabGameplayIndex, __instance, 
             "SettingsMenuTab.Mods", "LuaCsForBarotrauma.SettingsMenu.ModGameplayButton");
         var controlsContentFrame = CreateNewContentTab(tabControlsIndex, __instance, 
-            "SettingsMenuTab.Mods", "LuaCsForBarotrauma.SettingsMenu.ModControlsButton");
+            "SettingsMenuTab.Controls", "LuaCsForBarotrauma.SettingsMenu.ModControlsButton");
 
         _gameplayMenuInstance = new ModsGameplaySettingsMenu(gameplayContentFrame, _packageManagementService, _configService, __instance);
         _controlsMenuInstance = new ModsControlsSettingsMenu(controlsContentFrame, _packageManagementService, _configService, __instance);
