@@ -45,11 +45,12 @@ public class SettingsMenuSystem : ISettingsMenuSystem
 
         _gameplayContentFrame = CreateNewContentTab(tabGameplayIndex, __instance, 
             "SettingsMenuTab.Mods", "LuaCsForBarotrauma.SettingsMenu.ModGameplayButton");
-        _controlsContentFrame = CreateNewContentTab(tabControlsIndex, __instance, 
+        /*_controlsContentFrame = CreateNewContentTab(tabControlsIndex, __instance, 
             "SettingsMenuTab.Controls", "LuaCsForBarotrauma.SettingsMenu.ModControlsButton");
+            */
 
         _gameplayMenuInstance = new ModsGameplaySettingsMenu(_gameplayContentFrame, _packageManagementService, _configService, __instance);
-        _controlsMenuInstance = new ModsControlsSettingsMenu(_controlsContentFrame, _packageManagementService, _configService, __instance);
+        //_controlsMenuInstance = new ModsControlsSettingsMenu(_controlsContentFrame, _packageManagementService, _configService, __instance);
     }
     
     private GUIFrame CreateNewContentTab(SettingsMenu.Tab tab, SettingsMenu settingsMenuInstance, string settingsMenuTabName, string settingMenuHoverTextIdent)

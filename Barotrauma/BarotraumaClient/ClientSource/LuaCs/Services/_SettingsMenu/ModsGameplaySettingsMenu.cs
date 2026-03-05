@@ -6,6 +6,7 @@ using System.Linq;
 using System.Numerics;
 using Barotrauma.LuaCs.Data;
 using Vector2 = Microsoft.Xna.Framework.Vector2;
+using Vector4 = Microsoft.Xna.Framework.Vector4;
 
 // ReSharper disable ObjectCreationAsStatement
 
@@ -28,7 +29,6 @@ internal sealed class ModsGameplaySettingsMenu : ModsSettingsMenuBase
         SettingsMenu settingsMenuInstance) : base(contentFrame, packageManagementService, configService, settingsMenuInstance)
     {
         _settingsInstancesGameplay = configService.GetDisplayableConfigs()
-            .Where(s => s is not ISettingControl)
             .ToImmutableArray();
         
         
@@ -69,7 +69,6 @@ internal sealed class ModsGameplaySettingsMenu : ModsSettingsMenuBase
         OnApplyInstalledModsChanges = () =>
         {
             _settingsInstancesGameplay = configService.GetDisplayableConfigs()
-                .Where(s => s is not ISettingControl)
                 .ToImmutableArray();
             if (_selectedContentPackage is not null && !GetTargetPackagesList().Contains(_selectedContentPackage))
             {
@@ -128,6 +127,7 @@ internal sealed class ModsGameplaySettingsMenu : ModsSettingsMenuBase
                 .Where(s => _selectedCategory.IsNullOrWhiteSpace() 
                             || _selectedCategory == "All"
                             || GetLocalizedString(s.GetDisplayInfo().DisplayCategory, "General") == _selectedCategory)
+                .OrderBy(s => GetLocalizedString(s.GetDisplayInfo().DisplayName, s.InternalName))
                 .ToImmutableArray();
         }
 
@@ -139,6 +139,7 @@ internal sealed class ModsGameplaySettingsMenu : ModsSettingsMenuBase
                 .Where(s => _selectedContentPackage is null 
                             || _selectedContentPackage == ContentPackageManager.VanillaCorePackage // vanilla is treated as all packages
                             || s.OwnerPackage == _selectedContentPackage)
+                .OrderBy(s => GetLocalizedString(s.GetDisplayInfo().DisplayName, s.InternalName))
                 .ToImmutableArray();
         }
         
@@ -212,7 +213,6 @@ internal sealed class ModsGameplaySettingsMenu : ModsSettingsMenuBase
 
             foreach (var category in categories)
             {
-                DebugConsole.Log(category);
                 var btn = new GUIButton(new RectTransform(new Vector2(1f, 0.122f), displayCategoriesLayout.RectTransform), 
                     text: category, color: Color.TransparentBlack)
                 {
@@ -264,6 +264,7 @@ internal sealed class ModsGameplaySettingsMenu : ModsSettingsMenuBase
                 font: GUIStyle.SmallFont,
                 textAlignment: Alignment.Left)
             {
+                Padding = new Vector4(0.02f,0,0,0),
                 CanBeFocused = false
             };
 

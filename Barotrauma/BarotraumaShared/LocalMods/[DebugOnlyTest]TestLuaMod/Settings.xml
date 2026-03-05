@@ -7,6 +7,7 @@
     <Setting Name="TestRangeFloat" Type="rangeFloat" Min="0" Max="25" Steps="11"/>
     <Setting Name="TestRangeInt" Type="rangeInt" Min="0" Max="10" Steps="11"/>
     <Setting Name="TestString" Type="string" />
+    <Setting Name="TestControl" Type="control" Value="A"/>
   </Settings>
   <Profiles>
     <Profile Name="default">

@@ -50,8 +50,14 @@ public class SettingsEntryRegistrar : ISettingsRegistrationProvider
             return new SettingRangeFloat.RangeFactory().CreateInstance(cfgInfo.Info, (val) =>
                 IsValueChangeAllowed(cfgInfo.Info, val, valueChangePredicate));
         });
-        
-        // ISettingList : Not Implemented yet
+
+#if CLIENT
+        configService.RegisterSettingTypeInitializer("control" , cfgInfo =>
+        {
+            return new SettingControl.Factory().CreateInstance(cfgInfo.Info, val => 
+                IsValueChangeAllowed(cfgInfo.Info, val, valueChangePredicate));
+        });
+#endif
     }
 
     private void RegisterSettingEntry<T>(IConfigService configService, string typeName, Func<OneOf<string, XElement, object>, bool> valueChangePredicate) where T : IEquatable<T>, IConvertible

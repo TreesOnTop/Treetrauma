@@ -3,15 +3,27 @@ using System.Globalization;
 using System.Linq;
 using System.Xml.Linq;
 using Barotrauma.LuaCs.Data;
+using Microsoft.Toolkit.Diagnostics;
 using Microsoft.Xna.Framework.Input;
 using OneOf;
 
 namespace Barotrauma.LuaCs.Data;
 
-public class SettingControl : SettingBase, ISettingControl
+public sealed class SettingControl : SettingBase, ISettingControl
 {
-    public SettingControl(IConfigInfo configInfo) : base(configInfo)
+    public class Factory : ISettingBase.IFactory<ISettingBase>
     {
+        public ISettingBase CreateInstance(IConfigInfo configInfo, Func<OneOf<string, XElement, object>, bool> valueChangePredicate)
+        {
+            Guard.IsNotNull(configInfo, nameof(configInfo));
+            return new SettingControl(configInfo, valueChangePredicate);
+        }
+    }
+    
+    public SettingControl(IConfigInfo configInfo,  Func<OneOf<string, XElement, object>, bool> valueChangePredicate) : base(configInfo)
+    {
+        _valueChangePredicate = valueChangePredicate;
+        TrySetValue(configInfo.Element);
     }
 
     protected override void OnDispose()
@@ -19,9 +31,9 @@ public class SettingControl : SettingBase, ISettingControl
         OnValueChanged = null;
     }
 
+    private Func<OneOf<string, XElement, object>, bool> _valueChangePredicate;
     public override Type GetValueType() => typeof(KeyOrMouse);
     public override string GetStringValue() => Value.ToString();
-
     public override string GetDefaultStringValue() => new KeyOrMouse(Keys.NumLock).ToString();
 
     public override bool TrySetValue(OneOf<string, XElement> value)
@@ -31,6 +43,11 @@ public class SettingControl : SettingBase, ISettingControl
             (XElement e) => e.GetAttributeKeyOrMouse("Value", null));
         
         if (newVal is null)
+        {
+            return false;
+        }
+
+        if (_valueChangePredicate is not null && !_valueChangePredicate.Invoke(newVal))
         {
             return false;
         }
