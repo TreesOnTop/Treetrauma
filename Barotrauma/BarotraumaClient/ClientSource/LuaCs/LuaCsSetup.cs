@@ -14,25 +14,23 @@ namespace Barotrauma
 {
     partial class LuaCsSetup
     {
+        private bool _isClientPromptActive;
+        
         /// <summary>
         /// 
         /// </summary>
-        /// <returns>Returns whether the IsCsEnabled has been changed to true/enabled. Returns false if already enabled.</returns>
-        public bool CheckCsEnabled()
+        /// <returns>Returns whether execution should continue.</returns>
+        public bool CheckReadyToRun()
         {
             // fast exit if enabled or unavailable.
             if (this.IsCsEnabled)
             {
-                return false;
+                return true;
             }
             
-            bool isCsValueChanged = false;
-            
-            var csharpMods = PackageManagementService.GetLoadedAssemblyPackages();
-
             StringBuilder sb = new StringBuilder();
 
-            foreach (ContentPackage cp in csharpMods)
+            foreach (ContentPackage cp in PackageManagementService.GetLoadedAssemblyPackages())
             {
                 if (cp.UgcId.TryUnwrap(out ContentPackageId id))
                     sb.AppendLine($"- {cp.Name} ({id})");
@@ -42,53 +40,65 @@ namespace Barotrauma
 
             if (GameMain.Client == null || GameMain.Client.IsServerOwner)
             {
-                new GUIMessageBox("", $"You have CSharp mods enabled but don't have the CSharp Scripting enabled, those mods might not work, go to the Main Menu, click on LuaCs Settings and check Enable CSharp Scripting.\n\n{sb}");
-                return false;
+                DisplayCsModsPromptServer(sb);
+            }
+            else if (!_isClientPromptActive)
+            {
+                _isClientPromptActive = true;
+                DisplayCsModsPromptClient(sb);
             }
 
-            GUIMessageBox msg = new GUIMessageBox(
-                "Confirm",
-                $"This server has the following CSharp mods installed: \n{sb}\nDo you wish to run them? Cs mods are not sandboxed so make sure you trust these mods.",
-                new LocalizedString[2] { "Run", "Don't Run" });
+            return false;
+            
 
-            msg.Buttons[0].OnClicked = (GUIButton button, object obj) =>
+
+            void DisplayCsModsPromptServer(StringBuilder sb)
             {
-                try
+                new GUIMessageBox("", $"You have CSharp mods enabled but don't have the CSharp Scripting enabled, those mods might not work, go to the Main Menu, click on LuaCs Settings and check Enable CSharp Scripting.\n\n{sb}");
+            }
+
+            void DisplayCsModsPromptClient(StringBuilder sb)
+            {
+                GUIMessageBox msg = new GUIMessageBox(
+                    "Confirm",
+                    $"This server has the following CSharp mods installed: \n{sb}\nDo you wish to run them? Cs mods are not sandboxed so make sure you trust these mods.",
+                    new LocalizedString[2] { "Run", "Don't Run" });
+
+                msg.Buttons[0].OnClicked = (GUIButton button, object obj) =>
                 {
-                    this.IsCsEnabled = true;
-                    isCsValueChanged = true;
-                    CoroutineManager.Invoke(() =>
+                    try
                     {
-                        if (CurrentRunState >= RunState.Running)
+                        this.IsCsEnabled = true;    
+                        this._isClientPromptActive = false;
+                        
+                        CoroutineManager.Invoke(() =>
                         {
-                            var currentRunState = CurrentRunState;
                             SetRunState(RunState.LoadedNoExec);
-                            SetRunState(currentRunState);
-                        }
-                    }, 0f);
-                    return true;
-                }
-                finally
-                {
-                    msg.Close();
-                }
-            };
+                            SetRunState(RunState.Running);
+                        }, 0f);
+                        return true;
+                    }
+                    finally
+                    {
+                        msg.Close();
+                    }
+                };
 
-            msg.Buttons[1].OnClicked = (GUIButton button, object obj) =>
-            {
-                try
+                msg.Buttons[1].OnClicked = (GUIButton button, object obj) =>
                 {
-                    // avoid a TOCTOU scenario.
-                    this.IsCsEnabled = false;
-                    return true;
-                }
-                finally
-                {
-                    msg.Close();
-                }
-            };
-
-            return isCsValueChanged;
+                    try
+                    {
+                        // avoid a TOCTOU scenario.
+                        this.IsCsEnabled = false;
+                        this._isClientPromptActive = false;
+                        return true;
+                    }
+                    finally
+                    {
+                        msg.Close();
+                    }
+                };
+            }
         }
 
         private void SetupServicesProviderClient(IServicesProvider serviceProvider)
@@ -132,9 +142,13 @@ namespace Barotrauma
                     case SpriteEditorScreen:
                     case SubEditorScreen:
                     case TestScreen: // notes: TestScreen is a Linux edge case editor screen and is deprecated.
-                        if (CheckCsEnabled() && this.CurrentRunState >= RunState.Running)
+                        if (!CheckReadyToRun())
                         {
-                            SetRunState(RunState.LoadedNoExec);
+                            if (CurrentRunState >= RunState.Running)
+                            {
+                                SetRunState(RunState.LoadedNoExec);
+                            }
+                            return;
                         }
 
                         SetRunState(RunState.Running);
