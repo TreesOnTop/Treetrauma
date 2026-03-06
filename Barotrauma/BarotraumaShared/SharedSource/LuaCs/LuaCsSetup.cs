@@ -73,8 +73,12 @@ namespace Barotrauma
         public IPluginManagementService PluginManagementService => _servicesProvider.GetService<IPluginManagementService>();
         public ILuaScriptManagementService LuaScriptManagementService => _servicesProvider.GetService<ILuaScriptManagementService>();
         public INetworkingService NetworkingService => _servicesProvider.GetService<INetworkingService>();
-        public IEventService EventService => _servicesProvider.GetService<IEventService>();
-        public LuaGame Game => _servicesProvider.GetService<LuaGame>();
+        // hotpath performance ref cache
+        private IEventService _eventService = null;
+        public IEventService EventService => _eventService ??= _servicesProvider.GetService<IEventService>();
+        // hotpath performance ref cache
+        private LuaGame _game;
+        public LuaGame Game => _game ??= _servicesProvider.GetService<LuaGame>();
         
         internal IStorageService StorageService => _servicesProvider.GetService<IStorageService>();
 
@@ -451,6 +455,8 @@ namespace Barotrauma
                 //NetworkingService.Dispose();
                 EventService.Dispose();
                 
+                _eventService = null;
+                _game = null;
                 _servicesProvider.DisposeAndReset();
             }
             catch (Exception e)
