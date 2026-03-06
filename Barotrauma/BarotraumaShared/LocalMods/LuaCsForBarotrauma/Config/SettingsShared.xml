@@ -3,7 +3,7 @@
   <Settings>
     <Setting Name="DisableErrorGUIOverlay" Type="bool" Value="true"/>
     <Setting Name="HideUserNamesInLogs" Type="bool" Value="true"/>
-    <Setting Name="LocalDataSavePath" Type="string" Value="/Data/Mods" AllowChangesWhileExecuting="false"/>
+    <Setting Name="LocalDataSavePath" Type="string" Value="/Data/Mods" ShowInMenus="false" ReadOnly="true"/>
     <Setting Name="LuaForBarotraumaSteamId" Type="ulong" Value="2559634234" ReadOnly="true"/>
     <Setting Name="IsCsEnabled" Type="bool" Value="false" AllowChangesWhileExecuting="false"/>
     <Setting Name="RestrictMessageSize" Type="bool" Value="true"/>

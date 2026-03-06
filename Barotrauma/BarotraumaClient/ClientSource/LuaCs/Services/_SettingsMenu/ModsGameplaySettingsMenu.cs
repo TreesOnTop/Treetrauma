@@ -258,7 +258,8 @@ internal sealed class ModsGameplaySettingsMenu : ModsSettingsMenuBase
             GUIFrame entryFrame = new GUIFrame(new RectTransform(new Vector2(1f, settingHeight), parent));
             GUILayoutGroup entryLayoutGroup = new GUILayoutGroup(new RectTransform(Vector2.One, entryFrame.RectTransform), isHorizontal: true);
 
-            new GUIFrame(new RectTransform(new Vector2(0.05f, 1f), entryLayoutGroup.RectTransform),
+            // padding
+            new GUIFrame(new RectTransform(new Vector2(0.02f, 1f), entryLayoutGroup.RectTransform),
                 color: Color.TransparentBlack);
             
             new GUITextBlock(new RectTransform(labelSize - new Vector2(0.05f, 0f), entryLayoutGroup.RectTransform),
@@ -267,7 +268,7 @@ internal sealed class ModsGameplaySettingsMenu : ModsSettingsMenuBase
                 font: GUIStyle.SmallFont,
                 textAlignment: Alignment.Left)
             {
-                CanBeFocused = false
+                ToolTip = GetLocalizedString(setting.GetDisplayInfo().Tooltip, string.Empty)
             };
 
             setting.AddDisplayComponent(entryLayoutGroup, controlSize, newValue =>

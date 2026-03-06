@@ -4,6 +4,7 @@ using System.Linq;
 using System.Xml.Linq;
 using Barotrauma.LuaCs.Data;
 using Microsoft.Toolkit.Diagnostics;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using OneOf;
 
@@ -148,4 +149,104 @@ public sealed class SettingControl : SettingBase, ISettingControl
         }
         return false;
     }
+
+#if CLIENT
+    private static GUICustomComponent InputListener;
+    
+    public override void AddDisplayComponent(GUILayoutGroup layoutGroup, Vector2 relativeSize, Action<string> onSerializedValue)
+    {
+        var inputButton = new GUIButton(new RectTransform(relativeSize, layoutGroup.RectTransform), Alignment.Center, 
+            style: "GUITextBoxNoIcon")
+        {
+            Text = this.Value.ToString(),
+            OnClicked = (btn, obj) =>
+            {
+                if (InputListener is not null)
+                {
+                    // Another button is active
+                    return true;
+                }
+                CoroutineManager.Invoke(() =>
+                {
+                    CreateListener(btn);
+                }, 0f); // delay one frame for button inputs
+                return true;
+            }
+        };
+        inputButton.OutlineColor = Color.PeachPuff;
+        inputButton.TextColor = Color.White;
+        
+
+        void ClearListener() 
+        {
+            InputListener?.Parent.RemoveChild(InputListener);
+            InputListener = null;
+        }
+        
+        void CreateListener(GUIButton button)
+        {
+            ClearListener();
+            InputListener = new GUICustomComponent(new RectTransform(Vector2.Zero, layoutGroup.RectTransform), 
+                onUpdate: (deltaTime, component) =>
+                {
+                    var pressedKeys = PlayerInput.GetKeyboardState.GetPressedKeys();
+                    if (pressedKeys?.Any() ?? false)
+                    {
+                        if (pressedKeys.Contains(Keys.Escape))
+                        {
+                            ClearListener();
+                            return;
+                        }
+
+                        ApplyValue(pressedKeys.First(), button);
+                        return;
+                    }
+                    
+                    if (PlayerInput.PrimaryMouseButtonClicked() &&
+                        (GUI.MouseOn == null || !(GUI.MouseOn is GUIButton) || GUI.MouseOn.IsChildOf(layoutGroup)))
+                    {
+                        ApplyValue(MouseButton.PrimaryMouse, button);
+                        return;
+                    }
+                    else if (PlayerInput.SecondaryMouseButtonClicked())
+                    {
+                        ApplyValue(MouseButton.SecondaryMouse, button);
+                        return;
+                    }
+                    else if (PlayerInput.MidButtonClicked())
+                    {
+                        ApplyValue(MouseButton.MiddleMouse, button);
+                        return;
+                    }
+                    else if (PlayerInput.Mouse4ButtonClicked())
+                    {
+                        ApplyValue(MouseButton.MouseButton4, button);
+                        return;
+                    }
+                    else if (PlayerInput.Mouse5ButtonClicked())
+                    {
+                        ApplyValue(MouseButton.MouseButton5, button);
+                        return;
+                    }
+                    else if (PlayerInput.MouseWheelUpClicked())
+                    {
+                        ApplyValue(MouseButton.MouseWheelUp, button);
+                        return;
+                    }
+                    else if (PlayerInput.MouseWheelDownClicked())
+                    {
+                        ApplyValue(MouseButton.MouseWheelDown, button);
+                        return;
+                    }
+                });
+        }
+
+        void ApplyValue(KeyOrMouse input, GUIButton button)
+        {
+            button.Text = input.ToString();
+            onSerializedValue?.Invoke(input.ToString());
+            ClearListener();
+        }
+    }
+#endif
 }
