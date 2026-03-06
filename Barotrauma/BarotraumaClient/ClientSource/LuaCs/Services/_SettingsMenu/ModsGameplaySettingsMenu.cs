@@ -204,8 +204,9 @@ internal sealed class ModsGameplaySettingsMenu : ModsSettingsMenuBase
                     GenerateSettingsListDisplay(_settingsDisplayGroup, GetDisplaySettingsList());
                 }, new Vector2(1f, 0.07f));
             var containerBox = new GUIListBox(new RectTransform(new Vector2(1f, 0.945f), layoutGroup.RectTransform));
-            float size_y = MathF.Max(categories.Length * 0.122f, 1f);
-            var displayedCategoriesFrame = new GUIFrame(new RectTransform(new Vector2(1f, size_y), containerBox.Content.RectTransform), style: null, color: Color.Black)
+            const float entryHeight = 0.122f;
+            float sizeY = MathF.Max(categories.Length * entryHeight, 1f);
+            var displayedCategoriesFrame = new GUIFrame(new RectTransform(new Vector2(1f, sizeY), containerBox.Content.RectTransform), style: null, color: Color.Black)
             {
                 CanBeFocused = false
             };
@@ -213,7 +214,7 @@ internal sealed class ModsGameplaySettingsMenu : ModsSettingsMenuBase
 
             foreach (var category in categories)
             {
-                var btn = new GUIButton(new RectTransform(new Vector2(1f, 0.122f), displayCategoriesLayout.RectTransform), 
+                var btn = new GUIButton(new RectTransform(new Vector2(1f, entryHeight), displayCategoriesLayout.RectTransform), 
                     text: category, color: Color.TransparentBlack)
                 {
                     CanBeFocused = true,
@@ -236,7 +237,7 @@ internal sealed class ModsGameplaySettingsMenu : ModsSettingsMenuBase
         void GenerateSettingsListDisplay(GUILayoutGroup layoutGroup, ImmutableArray<ISettingBase> settings) 
         {
             layoutGroup.ClearChildren();
-            float settingHeight = 0.06f;
+            const float settingHeight = 0.0625f;
             
             var containerBox = new GUIListBox(new RectTransform(new Vector2(1f, 1f), layoutGroup.RectTransform));
             foreach (var setting in settings)
@@ -255,7 +256,10 @@ internal sealed class ModsGameplaySettingsMenu : ModsSettingsMenuBase
         (GUIFrame entryFrame, GUILayoutGroup entryLayoutGroup) AddSettingToDisplay(ISettingBase setting, 
             RectTransform parent, float settingHeight, Vector2 labelSize, Vector2 controlSize)
         {
-            GUIFrame entryFrame = new GUIFrame(new RectTransform(new Vector2(1f, settingHeight), parent));
+            GUIFrame entryFrame = new GUIFrame(new RectTransform(new Vector2(1f, settingHeight), parent))
+            {
+                Color = Color.DarkGray
+            };
             GUILayoutGroup entryLayoutGroup = new GUILayoutGroup(new RectTransform(Vector2.One, entryFrame.RectTransform), isHorizontal: true);
 
             // padding
