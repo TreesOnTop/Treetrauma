@@ -38,23 +38,37 @@ namespace Barotrauma
                     sb.AppendLine($"- {cp.Name} (Not On Workshop)");
             }
 
-            if (GameMain.Client == null || GameMain.Client.IsServerOwner)
-            {
-                DisplayCsModsPromptServer(sb);
-            }
-            else if (!_isClientPromptActive)
+            if (!_isClientPromptActive)
             {
                 _isClientPromptActive = true;
-                DisplayCsModsPromptClient(sb);
+                if (GameMain.Client == null || GameMain.Client.IsServerOwner)
+                {
+                    DisplayCsModsPromptServer(sb);
+                }
+                else
+                {
+                    DisplayCsModsPromptClient(sb);
+                }
             }
-
+            
             return false;
             
 
 
             void DisplayCsModsPromptServer(StringBuilder sb)
             {
-                new GUIMessageBox("", $"You have CSharp mods enabled but don't have the CSharp Scripting enabled, those mods might not work, go to the Main Menu, click on LuaCs Settings and check Enable CSharp Scripting.\n\n{sb}");
+                var msg = new GUIMessageBox("", $"You have CSharp mods enabled but don't have the CSharp Scripting enabled, " +
+                                      $"those mods might not work, go to the Main Menu, click on LuaCs Settings and check Enable CSharp Scripting.\n\n{sb}");
+                foreach (var button in msg.Buttons)
+                {
+                    var old = button.OnClicked;
+                    button.OnClicked = (btn, obj) =>
+                    {
+                        var ret = old?.Invoke(btn, obj);
+                        _isClientPromptActive = false;
+                        return ret ?? true;
+                    };
+                }
             }
 
             void DisplayCsModsPromptClient(StringBuilder sb)
@@ -67,13 +81,12 @@ namespace Barotrauma
                 msg.Buttons[0].OnClicked = (GUIButton button, object obj) =>
                 {
                     try
-                    {
-                        this.IsCsEnabled = true;    
+                    { 
                         this._isClientPromptActive = false;
-                        
                         CoroutineManager.Invoke(() =>
                         {
                             SetRunState(RunState.LoadedNoExec);
+                            this.IsCsEnabled = true;
                             SetRunState(RunState.Running);
                         }, 0f);
                         return true;
