@@ -429,6 +429,7 @@ namespace Barotrauma
 
         public ILuaCsHook Hook => this.EventService;
         public INetworkingService Networking => this.NetworkingService;
+        public ILuaCsTimer Timer => _servicesProvider.GetService<ILuaCsTimer>();
 
         #endregion
 
