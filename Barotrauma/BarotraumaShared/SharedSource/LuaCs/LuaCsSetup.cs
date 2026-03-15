@@ -195,7 +195,8 @@ namespace Barotrauma
             servicesProvider.RegisterServiceType<INetworkIdProvider, NetworkingIdProvider>(ServiceLifetime.Transient);
             servicesProvider.RegisterServiceType<HarmonyEventPatchesService, HarmonyEventPatchesService>(ServiceLifetime.Singleton);
             servicesProvider.RegisterServiceType<IConsoleCommandsService, ConsoleCommandsService>(ServiceLifetime.Transient);
-            
+            servicesProvider.RegisterServiceType<MainMenuPatch, MainMenuPatch>(ServiceLifetime.Singleton);
+
             // Extension/Sub Services
             servicesProvider.RegisterServiceType<IAssemblyLoaderService.IFactory, AssemblyLoader.Factory>(ServiceLifetime.Transient);
             servicesProvider.RegisterServiceType<ISettingsRegistrationProvider, SettingsEntryRegistrar>(ServiceLifetime.Transient);
@@ -348,6 +349,7 @@ namespace Barotrauma
                 LuaScriptManagementService.Reset();
                 PackageManagementService.Reset();
                 NetworkingService.Reset();
+                _servicesProvider.GetService<MainMenuPatch>().Reset();
 
                 Logger.LogMessage("Services have been reset");
 
