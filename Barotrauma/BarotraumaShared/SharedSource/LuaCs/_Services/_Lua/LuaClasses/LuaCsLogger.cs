@@ -5,7 +5,7 @@ using MoonSharp.Interpreter;
 
 namespace Barotrauma
 {
-    internal enum LuaCsMessageOrigin
+    public enum LuaCsMessageOrigin
     {
         LuaCs,
         Unknown,
@@ -13,7 +13,7 @@ namespace Barotrauma
         CSharpMod,
     }
 
-    partial class LuaCsLogger
+    public partial class LuaCsLogger
     {
         public static void HandleException(Exception ex, LuaCsMessageOrigin origin)
         {
