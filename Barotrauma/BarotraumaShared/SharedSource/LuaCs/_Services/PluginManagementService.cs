@@ -833,6 +833,36 @@ public class PluginManagementService : IAssemblyManagementService
 
     public Result<Assembly> GetLoadedAssembly(OneOf<AssemblyName, string> assemblyName, in Guid[] excludedContexts)
     {
-        throw new NotImplementedException();
+        using var _ = _operationsLock.AcquireReaderLock().ConfigureAwait(false).GetAwaiter().GetResult();
+        IService.CheckDisposed(this);
+
+        var guids = excludedContexts;
+        return assemblyName.Match<Assembly>((AssemblyName asm) =>
+            {
+                foreach (var ass in _assemblyLoaders.Values
+                             .Where(al => guids.Length == 0 || !guids.Contains(al.Id))
+                             .SelectMany(al => al.Assemblies)
+                             .ToImmutableArray())
+                {
+                    if (ass.GetName() == asm)
+                    {
+                        return ass;
+                    }
+                }
+
+                return null;
+            },
+            (string asmName) =>
+            {
+                foreach (var ass in _assemblyLoaders.Values.SelectMany(al => al.Assemblies))
+                {
+                    if (ass.GetName().Name?.Equals(asmName) ?? ass.GetName().FullName.Equals(asmName))
+                    {
+                        return ass;
+                    }
+                }
+
+                return null;
+            });
     }
 }
