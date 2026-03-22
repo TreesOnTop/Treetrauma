@@ -3969,7 +3969,11 @@ namespace Barotrauma.Networking
                 //send to chat-linked wifi components
                 Signal s = new Signal(message, sender: senderCharacter, source: senderRadio.Item);
                 senderRadio.TransmitSignal(s, sentFromChat: true);
-            }            
+            }    
+            
+            var hookChatMsg = ChatMessage.Create(senderName, message, (ChatMessageType)type, senderCharacter, senderClient, changeType);
+
+            var should = LuaCsSetup.Instance.Hook.Call<bool?>("modifyChatMessage", hookChatMsg, senderRadio);
 
             //check which clients can receive the message and apply distance effects
             foreach (Client client in ConnectedClients)
