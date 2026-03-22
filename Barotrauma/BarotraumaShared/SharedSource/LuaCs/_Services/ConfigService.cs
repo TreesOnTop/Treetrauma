@@ -450,17 +450,21 @@ public sealed partial class ConfigService : IConfigService
 
         if (_storageService.LoadLocalXml(setting.OwnerPackage, SaveDataFileName) is not { } saveFileResult)
         {
+#if DEBUG
             return FluentResults.Result.Fail(
                 $"{nameof(LoadSavedValueForConfig)}: Could not open save file for setting [{setting.OwnerPackage.Name}.{setting.InternalName}]");
+#endif
+            return FluentResults.Result.Ok();
         }
         
         if (saveFileResult is { IsFailed: true })
         {
 #if DEBUG
             _logger.LogResults(saveFileResult.ToResult());
-#endif
             return FluentResults.Result.Fail(
                 $"{nameof(LoadSavedValueForConfig)}: Could not open save file for setting [{setting.OwnerPackage.Name}.{setting.InternalName}]");
+#endif
+            return FluentResults.Result.Ok();
         }
 
         if (saveFileResult.Value.Root is not {} rootElement
@@ -472,7 +476,10 @@ public sealed partial class ConfigService : IConfigService
         if (rootElement.GetChildElement(XmlConvert.EncodeLocalName(setting.OwnerPackage.Name.Trim()), StringComparison.InvariantCultureIgnoreCase)
             ?.GetChildElement(setting.InternalName, StringComparison.InvariantCultureIgnoreCase) is not {} cfgValueElement)
         {
+#if DEBUG
             return FluentResults.Result.Fail($"{nameof(LoadSavedValueForConfig)}: Could not find saved value for setting:[{setting.OwnerPackage.Name}.{setting.InternalName}]");
+#endif
+            return FluentResults.Result.Ok();
         }
 
         return FluentResults.Result.OkIf(setting.TrySetValue(cfgValueElement), new Error($"Failed to set value for [{setting.OwnerPackage.Name}.{setting.InternalName}]"));

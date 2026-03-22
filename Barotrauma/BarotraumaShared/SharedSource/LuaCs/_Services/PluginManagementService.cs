@@ -195,6 +195,8 @@ public class PluginManagementService : IAssemblyManagementService
     private Lazy<IEventService> _eventService;
     private Lazy<IConfigService> _configService;
     private Lazy<ILuaScriptManagementService> _luaScriptManagementService;
+    private IEventService _pluginEventService;
+    private Lazy<ILuaPatcher> _pluginLuaPatcherService;
     private readonly ConcurrentDictionary<ContentPackage, IAssemblyLoaderService> _assemblyLoaders = new();
     private readonly ConcurrentDictionary<Type, ContentPackage> _pluginPackageLookup = new();
     private readonly ConcurrentDictionary<ContentPackage, ImmutableArray<IAssemblyPlugin>> _pluginInstances = new();
@@ -208,7 +210,8 @@ public class PluginManagementService : IAssemblyManagementService
         ILoggerService logger, 
         Lazy<IEventService> eventService, 
         Lazy<ILuaScriptManagementService> luaScriptManagementService, 
-        Lazy<IConfigService> configService)
+        Lazy<IConfigService> configService, 
+        Lazy<ILuaPatcher> pluginLuaPatcherService)
     {
         _assemblyLoaderFactory = assemblyLoaderFactory;
         _storageService = storageService;
@@ -216,19 +219,22 @@ public class PluginManagementService : IAssemblyManagementService
         _eventService = eventService;
         _luaScriptManagementService = luaScriptManagementService;
         _configService = configService;
+        _pluginLuaPatcherService = pluginLuaPatcherService;
     }
 
     private ServiceContainer CreatePluginServiceContainer()
     {
         var container = new ServiceContainer(new ContainerOptions()
         {
-            EnablePropertyInjection = true,
-            
+            EnablePropertyInjection = true
         });
 
+        _pluginEventService ??= new EventService(_logger, _pluginLuaPatcherService.Value);
+        _eventService.Value.AddDispatcherEventService(_pluginEventService);
+        
         container.Register<ILoggerService>(fac => _logger);
         container.Register<IStorageService>(fac => _storageService);
-        container.Register<IEventService>(fac => _eventService.Value);
+        container.Register<IEventService>(fac => _pluginEventService);
         container.Register<IPluginManagementService>(fac => this);
         container.Register<ILuaScriptManagementService>(fac => _luaScriptManagementService.Value);
         container.Register<IConfigService>(fac => _configService.Value);
@@ -707,6 +713,37 @@ public class PluginManagementService : IAssemblyManagementService
 
         _assemblyLoaders.Clear();
         GC.Collect(GC.MaxGeneration, GCCollectionMode.Aggressive, true);
+
+#if DEBUG
+        // Print still loaded assembly load ctx after giving some time
+        CoroutineManager.Invoke(() =>
+        {
+            if (!_unloadingAssemblyLoaders.Any())
+            {
+                return;
+            }
+            
+            StringBuilder sb = new StringBuilder();
+
+            sb.AppendLine("The following ContentPackages have not unloaded their assemblies:");
+            
+            foreach (var kvp in _unloadingAssemblyLoaders.ToImmutableArray())
+            {
+                sb.AppendLine($"- '{kvp.Value.Name}'");
+            }
+            
+            
+            // Use DebugConsole in case logger is null by the time this executes.
+            if (_logger is null)
+            {
+                DebugConsole.LogError(sb.ToString());
+            }
+            else
+            {
+                _logger.LogWarning(sb.ToString());
+            }
+        }, 3.0f);
+#endif
         
         return results;
     }
@@ -714,24 +751,29 @@ public class PluginManagementService : IAssemblyManagementService
     private FluentResults.Result UnsafeDisposeManagedTypeInstances()
     {
         var results = new FluentResults.Result();
+        
+        if (!_pluginInstances.IsEmpty)
+        {
+            foreach (var instance in _pluginInstances.SelectMany(kvp => kvp.Value))
+            {
+                try
+                {
+                    instance.Dispose();
+                }
+                catch (Exception e)
+                {
+                    results.WithError(new ExceptionalError(e));
+                    continue;
+                }
+            }
+        }
+        
+        if (_pluginEventService is not null)
+        {
+            _eventService.Value.RemoveDispatcherEventService(_pluginEventService);
+            _pluginEventService = null;
+        }
         _pluginInjectorContainer = null;
-        if (_pluginInstances.IsEmpty)
-        {
-            return FluentResults.Result.Ok();
-        }
-
-        foreach (var instance in _pluginInstances.SelectMany(kvp => kvp.Value))
-        {
-            try
-            {
-                instance.Dispose();
-            }
-            catch (Exception e)
-            {
-                results.WithError(new ExceptionalError(e));
-                continue;
-            }
-        }
         
         _pluginInstances.Clear();
         _pluginPackageLookup.Clear();

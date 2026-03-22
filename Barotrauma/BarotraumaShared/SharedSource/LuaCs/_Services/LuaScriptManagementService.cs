@@ -214,11 +214,13 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService,
 
         if (!LuaCsFile.CanReadFromPath(file))
         {
+            // TODO: Replace with LuaScriptLoader IsFileAccessible.
             throw new ScriptRuntimeException($"dofile: File access to {file} not allowed.");
         }
 
         if (!LuaCsFile.Exists(file))
         {
+            // TODO: Replace with LuaScriptLoader IsFileAccessible.
             throw new ScriptRuntimeException($"dofile: File {file} not found.");
         }
 

@@ -6,6 +6,8 @@ using OneOf;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
@@ -55,6 +57,7 @@ public partial class EventService : IEventService
     private readonly ConcurrentDictionary<TypeStringKey, ConcurrentDictionary<OneOf<IEvent, string>, IEvent>> _subscribers = new();
     private readonly ConcurrentDictionary<TypeStringKey, (TypeStringKey Event, Func<LuaCsFunc, IEvent> RunnerFactory)> _luaAliasEventFactory = new();
     private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, LuaCsFunc>> _luaLegacyEventsSubscribers = new();
+    private readonly ConcurrentDictionary<IEventService, IEventService> _subscribedEventDispatchers = new();
 
     #region LifeCycle
 
@@ -316,7 +319,28 @@ public partial class EventService : IEventService
             }
         }
 
+        foreach (var dispatchers in _subscribedEventDispatchers.ToImmutableArray())
+        {
+            dispatchers.Value.PublishEvent(action);
+        }
+
         return results;
+    }
+
+    public void AddDispatcherEventService(IEventService eventService)
+    {
+        using var lck = _operationsLock.AcquireWriterLock().ConfigureAwait(false).GetAwaiter().GetResult();
+        IService.CheckDisposed(this);
+
+        _subscribedEventDispatchers.TryAdd(eventService, eventService);
+    }
+
+    public void RemoveDispatcherEventService(IEventService eventService)
+    {
+        using var lck = _operationsLock.AcquireWriterLock().ConfigureAwait(false).GetAwaiter().GetResult();
+        IService.CheckDisposed(this);
+        
+        _subscribedEventDispatchers.TryRemove(eventService, out _);
     }
 
     #region LuaPatcherAdapter
