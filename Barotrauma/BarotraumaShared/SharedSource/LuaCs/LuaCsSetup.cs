@@ -351,6 +351,7 @@ namespace Barotrauma
                 LuaScriptManagementService.Reset();
                 PackageManagementService.Reset();
                 NetworkingService.Reset();
+                Game.Reset();
                 _servicesProvider.GetService<MainMenuPatch>().Reset();
 
                 Logger.LogMessage("Services have been reset");

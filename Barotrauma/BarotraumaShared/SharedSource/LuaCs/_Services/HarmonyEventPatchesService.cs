@@ -27,12 +27,16 @@ internal class HarmonyEventPatchesService : ISystem
     private static ILoggerService _loggerService;
     private readonly Harmony Harmony;
 
+    private static int debugConsoleCommandVanillaIndex;
+
     public HarmonyEventPatchesService(IEventService eventService, ILoggerService loggerService)
     {
         _eventService = eventService;
         _loggerService = loggerService;
         Harmony = new Harmony("LuaCsForBarotrauma.Events");
         Patch();
+
+        debugConsoleCommandVanillaIndex = DebugConsole.Commands.Count;
     }
 
     private void Patch()
@@ -136,6 +140,22 @@ internal class HarmonyEventPatchesService : ISystem
     {
         _eventService.PublishEvent<IEventKeyUpdate>(x => x.OnKeyUpdate(deltaTime));
     }
+
+    [HarmonyPatch(typeof(DebugConsole), "IsCommandPermitted"), HarmonyPrefix]
+    public static bool DebugConsole_IsCommandPermitted(Identifier command, ref bool __result)
+    {
+        DebugConsole.Command c = DebugConsole.FindCommand(command.Value);
+        
+        if (DebugConsole.Commands.IndexOf(c) >= debugConsoleCommandVanillaIndex)
+        {
+            __result = true;
+            return false;
+        }
+
+        return true;
+    }
+
+
 #elif SERVER
     [HarmonyPatch(typeof(GameServer), "ReadDataMessage"), HarmonyPrefix]
     public static void GameServer_ReadDataMessage_Pre(NetworkConnection sender, IReadMessage inc)

@@ -147,7 +147,6 @@ namespace Barotrauma.LuaCs
         public bool disableSpamFilter = false;
         public bool disableDisconnectCharacter = false;
         public bool enableControlHusk = false;
-
         public int MapEntityUpdateInterval
         {
             get { return MapEntity.MapEntityUpdateInterval; }
@@ -270,10 +269,12 @@ namespace Barotrauma.LuaCs
         }
 #endif
 
-        public LuaGame()
+        private readonly IConsoleCommandsService _consoleCommands;
+
+        public LuaGame(IConsoleCommandsService consoleCommands)
         {
-            /*LuaUserData.MakeFieldAccessible(UserData.RegisterType(typeof(GameSettings)), "currentConfig");
-            Settings = UserData.CreateStatic(typeof(GameSettings));*/
+            Settings = UserData.CreateStatic(typeof(GameSettings));
+            _consoleCommands = consoleCommands;
         }
 
         public void OverrideTraitors(bool o)
@@ -405,38 +406,16 @@ namespace Barotrauma.LuaCs
             return new Signal(value, stepsTaken, sender, source, power, strength);
         }
 
-        private List<DebugConsole.Command> luaAddedCommand = new List<DebugConsole.Command>();
-        public IEnumerable<DebugConsole.Command> LuaAddedCommand { get { return luaAddedCommand; } }
-
-        public bool IsCustomCommandPermitted(Identifier command)
-        {
-            DebugConsole.Command[] permitted = new DebugConsole.Command[] 
-            { 
-                DebugConsole.FindCommand("cl_reloadluacs"),
-                DebugConsole.FindCommand("cl_lua"),
-                DebugConsole.FindCommand("cl_toggleluadebug"),
-            };
-
-            foreach (var consoleCommand in LuaAddedCommand.Concat(permitted.AsEnumerable())) 
-            { 
-                if (consoleCommand.Names.Contains(command))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         public void RemoveCommand(string name)
         {
-            for (var i = 0; i < DebugConsole.Commands.Count; i++)
+            _consoleCommands.RemoveCommand(name);
+
+            for (var i = DebugConsole.Commands.Count - 1; i >= 0; i--)
             {
                 foreach (var cmdname in DebugConsole.Commands[i].Names)
                 {
                     if (cmdname == name)
                     {
-                        luaAddedCommand.Remove(DebugConsole.Commands[i]);
                         DebugConsole.Commands.RemoveAt(i);
                         continue;
                     }
@@ -446,32 +425,28 @@ namespace Barotrauma.LuaCs
 
         public void AddCommand(string name, string help, LuaCsAction onExecute, LuaCsFunc getValidArgs = null, bool isCheat = false)
         {
-            var cmd = new DebugConsole.Command(name, help, (string[] arg1) => onExecute(new object[] { arg1 }),
+            _consoleCommands.RegisterCommand(name, help,
+                (string[] args) =>
+                {
+                    onExecute(new object[] { args });
+                },
                 () =>
                 {
-                    if (getValidArgs == null) return null;
+                    if (getValidArgs == null) { return null; }
                     var validArgs = getValidArgs();
                     if (validArgs is DynValue luaValue)
                     {
                         return luaValue.ToObject<string[][]>();
                     }
                     return (string[][])validArgs;
-                }, isCheat);
-
-            luaAddedCommand.Add(cmd);
-            DebugConsole.Commands.Add(cmd);
+                }
+            );
         }
-
-        public List<DebugConsole.Command> Commands => DebugConsole.Commands;
 
         public bool IsDisposed => throw new NotImplementedException();
 
-        public void AssignOnExecute(string names, object onExecute) => DebugConsole.AssignOnExecute(names,
-            (string[] a) =>
-            {
-                //GameMain.LuaCs.CallLuaFunction(onExecute, new object[] { a });
-                throw new NotImplementedException();
-            });
+        public void AssignOnExecute(string names, LuaCsAction onExecute) => 
+            _consoleCommands.AssignOnExecute(names, args => onExecute(args));
 
         public void SaveGame(string path)
         {
@@ -532,7 +507,8 @@ namespace Barotrauma.LuaCs
             GameMain.Server.EndGame();
         }
 
-        //public void AssignOnClientRequestExecute(string names, object onExecute) => DebugConsole.AssignOnClientRequestExecute(names, (Client a, Vector2 b, string[] c) => { GameMain.LuaCs.CallLuaFunction(onExecute, new object[] { a, b, c }); });
+        public void AssignOnClientRequestExecute(string names, LuaCsAction onExecute) => 
+            _consoleCommands.AssignOnClientRequestExecute(names, (Client client, Vector2 position, string[] args) => onExecute(client, position, args));
 
 #endif
 
@@ -541,10 +517,7 @@ namespace Barotrauma.LuaCs
             MapEntityUpdateInterval = 1;
             CharacterUpdateInterval = 1;
 
-            foreach (var cmd in luaAddedCommand)
-            {
-                DebugConsole.Commands.Remove(cmd);
-            }
+            _consoleCommands.RemoveRegisteredCommands();
         }
 
         public FluentResults.Result Reset()

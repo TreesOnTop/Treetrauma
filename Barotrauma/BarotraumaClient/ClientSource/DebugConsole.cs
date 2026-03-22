@@ -223,8 +223,6 @@ namespace Barotrauma
 
         private static bool IsCommandPermitted(Identifier command, GameClient client)
         {
-            if (LuaCsSetup.Instance.Game.IsCustomCommandPermitted(command)) { return true; }
-
             switch (command.Value.ToLowerInvariant())
             {
                 case "kick":
