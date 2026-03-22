@@ -247,6 +247,8 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService,
 
     private void RegisterLuaEvents()
     {
+        _eventService.Subscribe<IEventAssemblyUnloading>(this);
+
         _eventService.RegisterLuaEventAlias<IEventUpdate>("think", nameof(IEventUpdate.OnUpdate));
         _eventService.RegisterLuaEventAlias<IEventKeyUpdate>("keyUpdate", nameof(IEventKeyUpdate.OnKeyUpdate));
         _eventService.RegisterLuaEventAlias<IEventAfflictionUpdate>("afflictionUpdate", nameof(IEventAfflictionUpdate.OnAfflictionUpdate));
