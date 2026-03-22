@@ -23,10 +23,11 @@ using System.Threading.Tasks;
 using Barotrauma.LuaCs;
 using Barotrauma.LuaCs.Events;
 using System.Diagnostics;
+using System.Reflection;
 
 namespace Barotrauma.LuaCs;
 
-class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService
+class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService, IEventAssemblyUnloading
 {
     public Script? InternalScript => _script;
 
@@ -463,8 +464,6 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService
 
         _script = null;
 
-        // todo unregister everything
-
         return FluentResults.Result.Ok();
     }
 
@@ -508,5 +507,13 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService
         if (!IsRunning) { return null; }
 
         return _script.Globals[tableName];
+    }
+
+    public void OnAssemblyUnloading(Assembly assembly)
+    {
+        foreach (Type type in assembly.SafeGetTypes())
+        {
+            UserData.UnregisterType(type, deleteHistory: true);
+        }
     }
 }
