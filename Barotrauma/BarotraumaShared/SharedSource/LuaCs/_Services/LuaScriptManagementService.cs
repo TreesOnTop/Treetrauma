@@ -116,7 +116,8 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService,
 
         commands.RegisterCommand("cl_toggleluadebug", "Toggles the MoonSharp Debug Server.", (string[] args) =>
         {
-            int port = 41912;
+            DebugConsole.Log($"This command is currently not implemented. Please open a github issue if you need this feature.");
+            /*int port = 41912;
 
             if (args.Length > 0)
             {
@@ -124,7 +125,7 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService,
             }
 
             throw new NotImplementedException();
-            //GameMain.LuaCs.ToggleDebugger(port);
+            //GameMain.LuaCs.ToggleDebugger(port);*/
         });
 
 #elif SERVER

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 using System.Text;
 using System.Threading;
@@ -201,6 +202,7 @@ public class PluginManagementService : IAssemblyManagementService
     private readonly ConcurrentDictionary<Type, ContentPackage> _pluginPackageLookup = new();
     private readonly ConcurrentDictionary<ContentPackage, ImmutableArray<IAssemblyPlugin>> _pluginInstances = new();
     private readonly ConditionalWeakTable<IAssemblyLoaderService, ContentPackage> _unloadingAssemblyLoaders = new();
+    private readonly ConcurrentBag<IntPtr> _loadedNativeLibraries = new();
     private readonly AsyncReaderWriterLock _operationsLock = new();
     private ServiceContainer _pluginInjectorContainer;
     
@@ -638,10 +640,39 @@ public class PluginManagementService : IAssemblyManagementService
         return sourceCode.Replace("GameMain.LuaCs", "LuaCsSetup.Instance");
     }
 
-    private IntPtr OnAssemblyLoaderResolvingUnmanaged(Assembly arg1, string arg2)
+    private IntPtr OnAssemblyLoaderResolvingUnmanaged(Assembly callerAssembly, string targetAssemblyName)
     {
-        // TODO: Implement extern assembly lookup for Native/Unmanaged Assemblies.
-        throw new NotImplementedException();
+        Guard.IsNull(callerAssembly, nameof(callerAssembly));
+        Guard.IsNullOrWhiteSpace(targetAssemblyName, nameof(targetAssemblyName));
+        
+        if (AssemblyLoadContext.GetLoadContext(callerAssembly) is not IAssemblyLoaderService loaderService)
+        {
+            return IntPtr.Zero;
+        }
+
+        var targetDirectory = Path.GetFullPath(loaderService.OwnerPackage.Dir);
+        if (!targetAssemblyName.TrimEnd().EndsWith(".dll"))
+        {
+            targetAssemblyName += ".dll";
+        }
+
+        var res = _storageService.FindFilesInPackage(loaderService.OwnerPackage, string.Empty, targetAssemblyName, true);
+
+        if (res.IsFailed || !res.Value.Any())
+        {
+            return IntPtr.Zero;
+        }
+
+        foreach (var path in res.Value)
+        {
+            if (System.Runtime.InteropServices.NativeLibrary.TryLoad(path, out IntPtr asmPtr))
+            {
+                _loadedNativeLibraries.Add(asmPtr);
+                return asmPtr;
+            }
+        }
+
+        return IntPtr.Zero;
     }
 
     private Assembly OnAssemblyLoaderResolvingManaged(IAssemblyLoaderService requestingLoader, AssemblyName searchName)
@@ -744,6 +775,25 @@ public class PluginManagementService : IAssemblyManagementService
             }
         }, 3.0f);
 #endif
+        
+        // clear native libraries
+        if (_loadedNativeLibraries.Any())
+        {
+            foreach (var ptr in _loadedNativeLibraries)
+            {
+                try
+                {
+                    System.Runtime.InteropServices.NativeLibrary.Free(ptr);
+                }
+                catch 
+                {
+                    // ignored
+                    continue;
+                }
+            }
+            
+            _loadedNativeLibraries.Clear();
+        }
         
         return results;
     }
