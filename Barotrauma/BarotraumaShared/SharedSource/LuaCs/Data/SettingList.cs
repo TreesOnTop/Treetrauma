@@ -6,6 +6,7 @@ using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Toolkit.Diagnostics;
+using Microsoft.Xna.Framework;
 
 namespace Barotrauma.LuaCs.Data;
 
@@ -95,4 +96,15 @@ public class SettingList<T> : SettingEntry<T>, ISettingList<T> where T : IEquata
     public IReadOnlyList<T> Options => _valuesList.AsReadOnly();
 
     public IReadOnlyList<string> StringOptions => _valuesList.Select(e => e.ToString()).ToImmutableArray();
+
+#if CLIENT
+    public override void AddDisplayComponent(GUILayoutGroup layoutGroup, Vector2 relativeSize, Action<string> onSerializedValue)
+    {
+        GUIUtil.Dropdown(layoutGroup, (T val) => val.ToString(), null, Options, Value, (T val) =>
+        {
+            onSerializedValue?.Invoke(val.ToString());
+        }, new Vector2(relativeSize.X, 1f));
+    }
+#endif
+    
 }
