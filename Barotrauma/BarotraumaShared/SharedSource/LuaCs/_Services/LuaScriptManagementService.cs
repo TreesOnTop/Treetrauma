@@ -312,6 +312,7 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService,
         // Compatibility
         _eventService.RegisterLuaEventAlias<IEventClientConnected>("clientConnected", nameof(IEventClientConnected.OnClientConnected));
         _eventService.RegisterLuaEventAlias<IEventClientDisconnected>("clientDisconnected", nameof(IEventClientDisconnected.OnClientDisconnected));
+        _eventService.RegisterLuaEventAlias<IEventModifyChatMessage>("modifyChatMessage", nameof(IEventModifyChatMessage.OnModifyMessagePredicate));
 #elif CLIENT
         _eventService.RegisterLuaEventAlias<IEventServerRawNetMessageReceived>("netMessageReceived", nameof(IEventServerRawNetMessageReceived.OnReceivedServerNetMessage));
 #endif

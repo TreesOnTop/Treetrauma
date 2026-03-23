@@ -3973,8 +3973,20 @@ namespace Barotrauma.Networking
             
             var hookChatMsg = ChatMessage.Create(senderName, message, (ChatMessageType)type, senderCharacter, senderClient, changeType);
 
-            var should = LuaCsSetup.Instance.Hook.Call<bool?>("modifyChatMessage", hookChatMsg, senderRadio);
+            bool shouldSkip = false;
+            LuaCsSetup.Instance.EventService.PublishEvent<IEventModifyChatMessage>(sub =>
+            {
+                if (sub.OnModifyMessagePredicate(hookChatMsg, senderRadio) is true)
+                {
+                    shouldSkip = true;
+                }
+            });
 
+            if (shouldSkip)
+            {
+                return;
+            }
+            
             //check which clients can receive the message and apply distance effects
             foreach (Client client in ConnectedClients)
             {
