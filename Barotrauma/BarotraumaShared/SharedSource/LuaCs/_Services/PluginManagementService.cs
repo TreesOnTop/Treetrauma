@@ -637,7 +637,9 @@ public class PluginManagementService : IAssemblyManagementService
 
     private string DoSourceCodeTextCompatibilityPass(string sourceCode)
     {
-        return sourceCode.Replace("GameMain.LuaCs", "LuaCsSetup.Instance");
+        return sourceCode
+            .Replace("GameMain.LuaCs", "LuaCsSetup.Instance")
+            .Replace("Client.ClientList", "ModUtils.Client.ClientList");
     }
 
     private IntPtr OnAssemblyLoaderResolvingUnmanaged(Assembly callerAssembly, string targetAssemblyName)
