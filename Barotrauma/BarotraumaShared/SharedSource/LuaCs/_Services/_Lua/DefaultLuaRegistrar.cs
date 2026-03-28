@@ -42,6 +42,8 @@ public class DefaultLuaRegistrar : IDefaultLuaRegistrar
         _userDataService.RegisterType("Barotrauma.Range`1");
         _userDataService.RegisterType("Barotrauma.ItemPrefab");
 
+        _userDataService.RegisterType("Barotrauma.InputType");
+
         List<Assembly> assembliesToScan = [typeof(DefaultLuaRegistrar).Assembly, typeof(Identifier).Assembly, typeof(Microsoft.Xna.Framework.Vector2).Assembly];
 
         foreach (var type in assembliesToScan.SelectMany(a => a.GetTypes()))
