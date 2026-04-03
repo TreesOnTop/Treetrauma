@@ -3,14 +3,16 @@
   <LuaCsForBarotrauma.SettingsMenu.ModControlsButton>Mod Controls Settings</LuaCsForBarotrauma.SettingsMenu.ModControlsButton>
   <LuaCsForBarotrauma.SettingsMenu.ModGameplayButton>Mod Gameplay Settings</LuaCsForBarotrauma.SettingsMenu.ModGameplayButton>
   <!-- Settings -->
-  <LuaCsForBarotrauma.DisableErrorGUIOverlay.DisplayName>Suppress GUI Popup on Error</LuaCsForBarotrauma.DisableErrorGUIOverlay.DisplayName>
-  <LuaCsForBarotrauma.DisableErrorGUIOverlay.DisplayCategory>General</LuaCsForBarotrauma.DisableErrorGUIOverlay.DisplayCategory>
+  <!-- Is Cs Enabled-->
   <LuaCsForBarotrauma.IsCsEnabled.DisplayName>Are C# Mods Allowed</LuaCsForBarotrauma.IsCsEnabled.DisplayName>
   <LuaCsForBarotrauma.IsCsEnabled.Tooltip>Should unsandboxed scripts and dlls be allowed to run.</LuaCsForBarotrauma.IsCsEnabled.Tooltip>
   <LuaCsForBarotrauma.IsCsEnabled.DisplayCategory>General</LuaCsForBarotrauma.IsCsEnabled.DisplayCategory>
+  <!-- Use Caching -->
+  <LuaCsForBarotrauma.UseCaching.DisplayName>Use Pre-Caching</LuaCsForBarotrauma.UseCaching.DisplayName>
+  <LuaCsForBarotrauma.UseCaching.Tooltip>Should mod files be preloaded to speed up loading. Should only be turned off if you have mods that have issues with this.</LuaCsForBarotrauma.UseCaching.Tooltip>
+  <LuaCsForBarotrauma.UseCaching.DisplayCategory>General</LuaCsForBarotrauma.UseCaching.DisplayCategory>
+  <!-- Hide Usernames In Logs-->
   <LuaCsForBarotrauma.HideUserNamesInLogs.DisplayName>Hide Local OS Account Name In Logs</LuaCsForBarotrauma.HideUserNamesInLogs.DisplayName>
+  <LuaCsForBarotrauma.HideUserNamesInLogs.Tooltip>If true, will replace your OS account name with 'USERNAME' in log files' paths.</LuaCsForBarotrauma.HideUserNamesInLogs.Tooltip>
   <LuaCsForBarotrauma.HideUserNamesInLogs.DisplayCategory>General</LuaCsForBarotrauma.HideUserNamesInLogs.DisplayCategory>
-  <LuaCsForBarotrauma.RestrictMessageSize.DisplayName>Limit Network Message Size</LuaCsForBarotrauma.RestrictMessageSize.DisplayName>
-  <LuaCsForBarotrauma.RestrictMessageSize.Tooltip>Limits the maximum network message size to avoid buffer size issues.</LuaCsForBarotrauma.RestrictMessageSize.Tooltip>
-  <LuaCsForBarotrauma.RestrictMessageSize.DisplayCategory>Networking</LuaCsForBarotrauma.RestrictMessageSize.DisplayCategory>
 </infotexts>

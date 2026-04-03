@@ -106,6 +106,12 @@ namespace Barotrauma
         }
         private ISettingBase<bool> _hideUserNamesInLogs;
 
+        public bool UseCaching
+        {
+            get => _useCaching?.Value ?? true;
+        }
+        private ISettingBase<bool> _useCaching;
+
         public static ContentPackage GetLuaCsPackage()
         {
             return ContentPackageManager.EnabledPackages.Regular.FirstOrDefault(cp => cp.NameMatches(PackageId), null)
@@ -124,6 +130,10 @@ namespace Barotrauma
             _hideUserNamesInLogs =
                 ConfigService.TryGetConfig<ISettingBase<bool>>(luaCsPackage, "HideUserNamesInLogs", out var val4)
                     ? val4
+                    : null;
+            _useCaching =
+                ConfigService.TryGetConfig<ISettingBase<bool>>(luaCsPackage, "UseCaching", out var val5)
+                    ? val5
                     : null;
         }
         
@@ -329,7 +339,6 @@ namespace Barotrauma
                     Logger.LogResults(PackageManagementService.LoadPackagesInfo(GetEnabledPackagesList()));
                     Logger.LogResults(ConfigService.LoadSavedConfigsValues());
                     LoadLuaCsConfig();
-                    
                 }
 
                 CurrentRunState = RunState.LoadedNoExec;

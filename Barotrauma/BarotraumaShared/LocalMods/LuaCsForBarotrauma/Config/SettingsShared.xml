@@ -3,5 +3,6 @@
   <Settings>
     <Setting Name="HideUserNamesInLogs" Type="bool" Value="true"/>
     <Setting Name="IsCsEnabled" Type="bool" Value="false" AllowChangesWhileExecuting="false"/>
+    <Setting Name="UseCaching" Type="bool" Value="true" AllowChangesWhileExecuting="false"/>
   </Settings>
 </Configuration>
