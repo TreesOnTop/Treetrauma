@@ -346,9 +346,6 @@ namespace Barotrauma
                 
             void RunStateRunning_OnEnter(State<RunState> currentState)
             {
-                string csEnabled = IsCsEnabled ? "enabled" : "disabled";
-                Logger.LogMessage($"LuaCs running state entered. Running under commit {AssemblyInfo.GitRevision}, CSharp is {csEnabled}");
-
                 if (!PackageManagementService.IsAnyPackageLoaded())
                 {
                     foreach (var registrationProvider in _servicesProvider.GetAllServices<ISettingsRegistrationProvider>())
@@ -359,6 +356,9 @@ namespace Barotrauma
                     Logger.LogResults(ConfigService.LoadSavedConfigsValues());
                     LoadLuaCsConfig();
                 }
+
+                string csEnabled = IsCsEnabled ? "enabled" : "disabled";
+                Logger.LogMessage($"LuaCs running state entered. Running under commit {AssemblyInfo.GitRevision}, CSharp is {csEnabled}");
 
                 if (!PackageManagementService.IsAnyPackageRunning())
                 {
