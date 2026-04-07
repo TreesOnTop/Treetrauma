@@ -364,18 +364,35 @@ public class PluginManagementService : IAssemblyManagementService
             .Where(al => executionOrder.Contains(al.Key))
             .Where(al => !excludeAlreadyRunningPackages || !_pluginInstances.ContainsKey(al.Key))
             .SelectMany(al => al.Value.Assemblies.Select(ass => (al.Key, ass)))
-            .SelectMany(kvp => kvp.ass.GetSafeTypes()
-                .Where(type =>
-                    type is { IsInterface: false, IsAbstract: false, IsGenericType: false } 
-                    && type.IsAssignableTo(typeof(IAssemblyPlugin)))
-                .Select(type => (kvp.Key, type)))
+            .SelectMany<(ContentPackage Key, Assembly ass), (ContentPackage Key, Type type)>(kvp =>
+            {
+                try
+                {
+                    return kvp.ass.GetTypes()
+                        .Where(type =>
+                            type is { IsInterface: false, IsAbstract: false, IsGenericType: false }
+                            && type.IsAssignableTo(typeof(IAssemblyPlugin)))
+                        .Select(type => (kvp.Key, type));
+                }
+                catch (ReflectionTypeLoadException re)
+                {
+                    results.WithError(new Error($"Failed to get types from Package '{kvp.Key.Name}'"));
+                    results.WithError(new ExceptionalError(re));
+                }
+                catch (Exception e)
+                {
+                    results.WithError(new Error($"Failed to get types from Package '{kvp.Key.Name}'"));
+                    results.WithError(new ExceptionalError(e));
+                }
+                return new List<(ContentPackage Key, Type type)>();
+            })
             .GroupBy(kvp => kvp.Key, kvp => kvp.type)
             .OrderBy(exeGrp => executionOrder.IndexOf(exeGrp.Key))
             .ToImmutableArray();
 
         if (toLoad.Length == 0)
         {
-            return FluentResults.Result.Ok();
+            return results;
         }
 
         _logger.LogMessage($"Activating {nameof(IAssemblyPlugin)} instances");
@@ -400,7 +417,7 @@ public class PluginManagementService : IAssemblyManagementService
                 }
                 catch (Exception e)
                 {
-                    results.WithError(new ExceptionalError(e));
+                    results.WithError(new ExceptionalError($"Failed to instantiate mod: {packageTypes.Key.Name}", e));
                     continue;
                 }
             }
