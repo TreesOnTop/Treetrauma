@@ -1,7 +1,9 @@
 ﻿#nullable enable
 
-using Barotrauma.LuaCs.Data;
+using Barotrauma.LuaCs;
 using Barotrauma.LuaCs.Compatibility;
+using Barotrauma.LuaCs.Data;
+using Barotrauma.LuaCs.Events;
 using Barotrauma.Networking;
 using FluentResults;
 using Microsoft.CodeAnalysis;
@@ -13,17 +15,16 @@ using MoonSharp.Interpreter.Interop;
 using MoonSharp.Interpreter.Loaders;
 using RestSharp.Validation;
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
-using Barotrauma.LuaCs;
-using Barotrauma.LuaCs.Events;
-using System.Diagnostics;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace Barotrauma.LuaCs;
 
@@ -384,19 +385,44 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService,
             typeof(ISettingBase<long>),
             typeof(ISettingBase<float>),
             typeof(ISettingBase<double>),
-            typeof(ISettingRangeBase<float>)
+
+            typeof(ISettingRangeBase<float>),
+            typeof(ISettingRangeBase<int>),
+
+            typeof(ISettingList<string>),
+            typeof(ISettingList<byte>),
+            typeof(ISettingList<sbyte>),
+            typeof(ISettingList<ushort>),
+            typeof(ISettingList<short>),
+            typeof(ISettingList<char>),
+            typeof(ISettingList<uint>),
+            typeof(ISettingList<int>),
+            typeof(ISettingList<ulong>),
+            typeof(ISettingList<long>),
+            typeof(ISettingList<float>),
+            typeof(ISettingList<double>),
         ];
 
-        Table settingsTable = new Table(_script);
+        Dictionary<string, Dictionary<string, object>> settingsTable = [];
 
         foreach (Type type in settingBaseTypes)
         {
             UserData.RegisterType(type);
 
-            settingsTable[type.GetGenericArguments()[0].Name] = UserData.CreateStatic(type);
+            string baseName = type.Name.RemoveFromEnd("`1").Substring(1);
+
+            if (!settingsTable.ContainsKey(baseName))
+            {
+                settingsTable[baseName] = new Dictionary<string, object>();
+            }
+
+            settingsTable[baseName][type.GetGenericArguments()[0].Name] = UserData.CreateStatic(type);
         }
         
-        _script.Globals["Settings"] = settingsTable;
+        foreach (var keyPair in settingsTable)
+        {
+            _script.Globals[keyPair.Key] = keyPair.Value;
+        }
 
         UserData.RegisterType(typeof(ISettingRangeBase<int>));
 #if CLIENT
