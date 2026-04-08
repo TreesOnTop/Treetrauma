@@ -26,6 +26,9 @@ end)
 
 local failed, package = trygetpackage("[DebugOnlyTest]TestLuaMod")
 
+print("packageFailed=", failed)
+print("package", package.Name)
+
 local success, config = ConfigService.TryGetConfig(SettingBase.Single, package, "TestFloat")
 
 print("config ", success, " ", config)
