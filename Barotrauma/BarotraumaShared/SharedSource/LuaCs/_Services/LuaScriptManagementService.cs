@@ -368,6 +368,41 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService,
         UserData.RegisterType(typeof(INetworkingService));
         UserData.RegisterType(typeof(ILuaConfigService));
 
+        UserData.RegisterType(typeof(ISettingBase));
+
+        Type[] settingBaseTypes = [
+            typeof(ISettingBase<bool>),
+            typeof(ISettingBase<string>),
+            typeof(ISettingBase<byte>),
+            typeof(ISettingBase<sbyte>),
+            typeof(ISettingBase<ushort>),
+            typeof(ISettingBase<short>),
+            typeof(ISettingBase<char>),
+            typeof(ISettingBase<uint>),
+            typeof(ISettingBase<int>),
+            typeof(ISettingBase<ulong>),
+            typeof(ISettingBase<long>),
+            typeof(ISettingBase<float>),
+            typeof(ISettingBase<double>),
+            typeof(ISettingRangeBase<float>)
+        ];
+
+        Table settingsTable = new Table(_script);
+
+        foreach (Type type in settingBaseTypes)
+        {
+            UserData.RegisterType(type);
+
+            settingsTable[type.GetGenericArguments()[0].Name] = UserData.CreateStatic(type);
+        }
+        
+        _script.Globals["Settings"] = settingsTable;
+
+        UserData.RegisterType(typeof(ISettingRangeBase<int>));
+#if CLIENT
+        UserData.RegisterType(typeof(ISettingControl));
+#endif
+
         new LuaConverters(this).RegisterLuaConverters();
 
         var luaRequire = new LuaRequire(_script);
