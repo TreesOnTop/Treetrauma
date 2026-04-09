@@ -31,9 +31,15 @@ print("package", package.Name)
 
 local success, config = ConfigService.TryGetConfig(SettingBase.Single, package, "TestFloat")
 
-print("config ", success, " ", config)
+local success2, config2 = ConfigService.TryGetConfig(SettingBase.Int32, package, "TestSynchroServer")
+local success3, config3 = ConfigService.TryGetConfig(SettingBase.Int32, package, "TestSynchroClient")
+
+print("config ", success, " ", config.Value)
+print("config testsynchrosrv", success2, " ", config2.Value)
+print("config testsynchrocli", success3, " ", config3.Value)
 
 local lastTime = 0
+
 Hook.Add("think", "printconfig", function()
     if lastTime > Timer.Time then return end
 
