@@ -533,6 +533,8 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService,
             }
         }
 
+        _eventService.Call("loaded");
+
         return result;
     }
 
