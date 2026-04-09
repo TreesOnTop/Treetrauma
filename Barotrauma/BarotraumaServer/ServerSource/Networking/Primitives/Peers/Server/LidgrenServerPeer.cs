@@ -33,6 +33,13 @@ namespace Barotrauma.Networking
                 DualStack = GameSettings.CurrentConfig.UseDualModeSockets,
                 LocalAddress = serverSettings.ListenIPAddress,
             };
+            if (NetConfig.UseLenientHandshake)
+            {
+                // More lenient timeouts for local testing, so the server would start even without perfect conditions
+                netPeerConfiguration.ConnectionTimeout = 60.0f;
+                netPeerConfiguration.ResendHandshakeInterval = 5.0f;
+                netPeerConfiguration.MaximumHandshakeAttempts = 20;
+            }
 
             netPeerConfiguration.DisableMessageType(
                 NetIncomingMessageType.DebugMessage

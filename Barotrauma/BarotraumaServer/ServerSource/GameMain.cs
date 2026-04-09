@@ -242,6 +242,9 @@ namespace Barotrauma
                         //handled in TryStartChildServerRelay
                         i += 2;
                         break;
+                    case "-lenienthandshake":
+                        NetConfig.UseLenientHandshake = true;
+                        break;
                 }
             }
 
