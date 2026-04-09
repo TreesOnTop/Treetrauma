@@ -105,7 +105,13 @@ internal interface IEventModifyChatMessage : IEvent<IEventModifyChatMessage>
         /// <returns>Whether to <b><i>reject</i></b> the message.</returns>
         public bool? OnModifyMessagePredicate(ChatMessage message, WifiComponent senderRadio)
         {
-            return (bool?)LuaFuncs[nameof(OnModifyMessagePredicate)](message, senderRadio);
+            object result = LuaFuncs[nameof(OnModifyMessagePredicate)](message, senderRadio);
+            if (result is DynValue dynValue && dynValue.Type == DataType.Boolean)
+            {
+                return dynValue.Boolean;
+            }
+
+            return null;
         }
     } 
 }
