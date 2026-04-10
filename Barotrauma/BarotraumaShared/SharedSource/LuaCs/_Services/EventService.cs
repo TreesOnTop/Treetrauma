@@ -203,6 +203,29 @@ public partial class EventService : IEventService
     {
         Guard.IsNotNullOrWhiteSpace(eventName, nameof(eventName));
         Guard.IsNotNullOrWhiteSpace(identifier, nameof(identifier));
+
+        using var lck = _operationsLock.AcquireReaderLock().ConfigureAwait(false).GetAwaiter().GetResult();
+        IService.CheckDisposed(this);
+
+        if (_luaAliasEventFactory.TryGetValue(eventName, out var eventFunc))
+        {
+            if (_subscribers.TryGetValue(eventFunc.Event, out var eventSubs))
+            {
+                eventSubs.TryRemove(identifier, out _);
+            }
+        }
+        else
+        {
+            if (_luaLegacyEventsSubscribers.TryGetValue(eventName, out var eventSubs))
+            {
+                eventSubs.TryRemove(identifier, out _);
+            }
+        }
+    }
+    public void Unsubscribe(string eventName, string identifier)
+    {
+        Guard.IsNotNullOrWhiteSpace(eventName, nameof(eventName));
+        Guard.IsNotNullOrWhiteSpace(identifier, nameof(identifier));
         using var lck = _operationsLock.AcquireReaderLock().ConfigureAwait(false).GetAwaiter().GetResult();
 
         if (!_subscribers.TryGetValue(eventName, out var evtSubscribers))
