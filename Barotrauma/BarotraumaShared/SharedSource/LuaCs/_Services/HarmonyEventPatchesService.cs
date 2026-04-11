@@ -2,6 +2,7 @@
 using Barotrauma.LuaCs;
 using Barotrauma.LuaCs.Events;
 using Barotrauma.Networking;
+using Barotrauma.Steam;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
 using System;
@@ -94,6 +95,27 @@ internal class HarmonyEventPatchesService : ISystem
     {
         _eventService.PublishEvent<IEventScreenSelected>(x => x.OnScreenSelected(__instance));
     }
+
+#if CLIENT
+    [HarmonyPatch(typeof(MainMenuScreen), "StartGame"), HarmonyPostfix]
+    public static void MainMenuScreen_StartGame_Pre(Screen __instance)
+    {
+        LuaCsSetup.Instance.SetRunState(RunState.Running);
+    }
+
+    [HarmonyPatch(typeof(MainMenuScreen), "LoadGame"), HarmonyPostfix]
+    public static void MainMenuScreen_LoadGame_Pre(Screen __instance)
+    {
+        LuaCsSetup.Instance.SetRunState(RunState.Running);
+    }
+
+    [HarmonyPatch(typeof(MutableWorkshopMenu), nameof(MutableWorkshopMenu.Apply)), HarmonyPostfix]
+    public static void MutableWorkshopMenu_Apply_Post(Screen __instance)
+    {
+        LuaCsSetup.Instance.PromptCSharpMods(selection => { }, joiningServer: false);
+    }
+
+#endif
 
     [HarmonyPatch(typeof(ContentPackageManager.PackageSource), nameof(ContentPackageManager.PackageSource.Refresh)), HarmonyPostfix]
     public static void PackageSource_Refresh_Post()

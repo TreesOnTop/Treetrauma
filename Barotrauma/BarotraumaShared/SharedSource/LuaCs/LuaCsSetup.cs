@@ -85,20 +85,31 @@ namespace Barotrauma
         public LuaGame Game => _game ??= _servicesProvider.GetService<LuaGame>();
         public Script Lua => LuaScriptManagementService.InternalScript;
 
+        private ISettingBase<bool> _isCsEnabledForSession;
+        public bool IsCsEnabledForSession
+        {
+            get => _isCsEnabledForSession?.Value ?? false;
+            internal set
+            {
+                _isCsEnabledForSession?.TrySetValue(value);
+                ConfigService.SaveConfigValue(_isCsEnabledForSession);
+            }
+        }
+
         /// <summary>
         /// Whether C# plugin code is enabled.
         /// </summary>
         public bool IsCsEnabled
         {
 #if CLIENT
-            get => _csRunPolicy?.Value == "Enabled" || _isCsEnabledForSession;
+            get => _csRunPolicy?.Value == "Enabled" || IsCsEnabledForSession;
 #elif SERVER
             // cs settings cannot be changed on the server after launch
             get => _csRunPolicy?.Value is "Enabled" or "Prompt";
 #endif
         }
+
         private ISettingList<string> _csRunPolicy;
-        private bool ShouldPromptForCs => _csRunPolicy?.Value is "Prompt";
         
         /// <summary>
         /// Whether usernames are anonymized or show in logs. 
@@ -138,6 +149,10 @@ namespace Barotrauma
             _useCaching =
                 ConfigService.TryGetConfig<ISettingBase<bool>>(luaCsPackage, "UseCaching", out var val5)
                     ? val5
+                    : null;
+            _isCsEnabledForSession =
+                ConfigService.TryGetConfig<ISettingBase<bool>>(luaCsPackage, "IsCsEnabledForSession", out var val6)
+                    ? val6
                     : null;
 
             if (!ContentPackageManager.EnabledPackages.All.Contains(luaCsPackage))
@@ -237,14 +252,8 @@ namespace Barotrauma
 
             CoroutineManager.Invoke(() =>
             {
-#if CLIENT
-                bool prevCsEnabled = _isCsEnabledForSession;
-#endif
                 var state = CurrentRunState;
                 SetRunState(RunState.Unloaded);
-#if CLIENT
-                _isCsEnabledForSession = prevCsEnabled;
-#endif
                 SetRunState(state);
             });
         }
@@ -266,7 +275,7 @@ namespace Barotrauma
             SetRunState(state); // restore
         }
         
-        private void SetRunState(RunState targetRunState)
+        public void SetRunState(RunState targetRunState)
         {
             if (CurrentRunState == targetRunState)
             {
@@ -393,9 +402,6 @@ namespace Barotrauma
             void RunStateRunning_OnExit(State<RunState> currentState)
             {
                 EventService.Call("stop");
-#if CLIENT
-                _isCsEnabledForSession = false;
-#endif
                 Logger.LogResults(PackageManagementService.StopRunningPackages());
                 Logger.LogMessage("LuaCs running state exited");
             }
