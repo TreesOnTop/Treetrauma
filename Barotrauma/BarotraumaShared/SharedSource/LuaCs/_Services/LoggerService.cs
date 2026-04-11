@@ -12,8 +12,6 @@ namespace Barotrauma.LuaCs;
 
 public partial class LoggerService : ILoggerService
 {
-    public bool HideUserNames = true;
-
     private List<ILoggerSubscriber> logSubscribers = [];
     private ConcurrentQueue<PendingLog> logQueue = [];
 
@@ -94,7 +92,7 @@ public partial class LoggerService : ILoggerService
 
     public void Log(string message, Color? color = null, ServerLog.MessageType messageType = ServerLog.MessageType.ServerMessage)
     {
-        if (HideUserNames && !Environment.UserName.IsNullOrEmpty())
+        if (LuaCsSetup.Instance.HideUserNamesInLogs && !Environment.UserName.IsNullOrEmpty())
         {
             message = message.Replace(Environment.UserName, "USERNAME");
         }
