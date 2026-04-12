@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Barotrauma.LuaCs.Data;
@@ -78,11 +79,31 @@ public sealed partial class ModConfigFileParserService :
             RequiredPackages = src.Required,
             IncompatiblePackages =  src.Incompatible,
             // Type Specific
-            FriendlyName = src.Element.GetAttributeString("FriendlyName", string.Empty),
+            FriendlyName = src.Element.GetAttributeString("FriendlyName", GetFallbackCompliantAssemblyName(src.Owner)),
             IsScript = src.Element.GetAttributeBool("IsScript", false),
             UseInternalAccessName = src.Element.GetAttributeBool("UseInternalAccessName", false),
             IsReferenceModeOnly = src.Element.GetAttributeBool("IsReferenceModeOnly", false)
         };
+        
+        
+        // helper methods
+        string GetFallbackCompliantAssemblyName(ContentPackage package)
+        {
+            if (package.Name.IsNullOrWhiteSpace())
+            {
+                return "FallbackAssemblyName";
+            }
+            
+            // replace non az chars with '_'
+            var sanitizedPackageName = Regex.Replace(package.Name, @"[^a-zA-Z0-9_]", "_");
+            if (char.IsDigit(sanitizedPackageName[0]))
+            {
+                sanitizedPackageName = "ASM" + sanitizedPackageName;
+            }
+
+            // replace consecutive '_'
+            return Regex.Replace(sanitizedPackageName, @"[_.]{2,}", "_");
+        }
     }
     
     async Task<ImmutableArray<Result<IAssemblyResourceInfo>>> IParserServiceAsync<ResourceParserInfo, IAssemblyResourceInfo>.TryParseResourcesAsync(IEnumerable<ResourceParserInfo> sources)
