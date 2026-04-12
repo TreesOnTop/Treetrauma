@@ -99,7 +99,15 @@ namespace Barotrauma
             internal set
             {
                 _isCsEnabledForSession?.TrySetValue(value);
-                if (_isCsEnabledForSession != null) { ConfigService.SaveConfigValue(_isCsEnabledForSession); }
+                if (_isCsEnabledForSession != null) 
+                {
+                    if (_isCsEnabledForSession.GetConfigInfo() == null)
+                    {
+                        Logger.LogError($"Config info was nil while trying to save {IsCsEnabledForSession}");
+                        return;
+                    }
+                    ConfigService.SaveConfigValue(_isCsEnabledForSession); 
+                }
             }
         }
 
