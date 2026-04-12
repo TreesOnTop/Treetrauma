@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Xml.Linq;
 using Barotrauma.LuaCs.Data;
+using Microsoft.Toolkit.Diagnostics;
 using Microsoft.Xna.Framework;
 using OneOf;
 
@@ -10,6 +11,7 @@ public abstract class SettingBase : ISettingBase
 {
     protected SettingBase(IConfigInfo configInfo)
     {
+        Guard.IsNotNull(configInfo, nameof(configInfo));
         ConfigInfo = configInfo;
     }
     
