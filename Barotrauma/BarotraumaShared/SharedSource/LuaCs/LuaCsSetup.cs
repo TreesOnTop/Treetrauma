@@ -29,13 +29,20 @@ namespace Barotrauma
 
         private static LuaCsSetup _luaCsSetup;
         public static LuaCsSetup Instance => _luaCsSetup ??= new LuaCsSetup();
-        
+
+        /// <summary>
+        /// The index of the last Vanilla command.
+        /// </summary>
+        public static int DebugConsoleCommandVanillaIndex { get; private set; }
+
         private LuaCsSetup()
         {
             if (_luaCsSetup != null)
             {
                 throw new Exception("Tried to create another LuaCsSetup instance");
             }
+
+            DebugConsoleCommandVanillaIndex = DebugConsole.Commands.Count;
 
             // == startup
             _servicesProvider = SetupServicesProvider();
@@ -395,6 +402,11 @@ namespace Barotrauma
                     EventService.PublishEvent<IEventServerConnected>(static p => p.OnServerConnected());
                 }
 #endif
+
+#if SERVER
+                GameMain.Server.ServerSettings.LoadClientPermissions();
+#endif
+
                 CurrentRunState = RunState.Running;
             }
 

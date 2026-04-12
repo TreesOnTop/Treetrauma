@@ -28,16 +28,12 @@ internal class HarmonyEventPatchesService : ISystem
     private static ILoggerService _loggerService;
     private readonly Harmony Harmony;
 
-    private static int debugConsoleCommandVanillaIndex;
-
     public HarmonyEventPatchesService(IEventService eventService, ILoggerService loggerService)
     {
         _eventService = eventService;
         _loggerService = loggerService;
         Harmony = new Harmony("LuaCsForBarotrauma.Events");
         Patch();
-
-        debugConsoleCommandVanillaIndex = DebugConsole.Commands.Count;
     }
 
     private void Patch()
@@ -169,7 +165,7 @@ internal class HarmonyEventPatchesService : ISystem
     {
         DebugConsole.Command c = DebugConsole.FindCommand(command.Value);
         
-        if (DebugConsole.Commands.IndexOf(c) >= debugConsoleCommandVanillaIndex)
+        if (DebugConsole.Commands.IndexOf(c) >= LuaCsSetup.DebugConsoleCommandVanillaIndex)
         {
             __result = true;
             return false;
