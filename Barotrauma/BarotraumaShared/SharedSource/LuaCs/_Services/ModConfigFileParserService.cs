@@ -61,8 +61,9 @@ public sealed partial class ModConfigFileParserService :
         if (CheckThrowNullRefs(src, "Assembly") is { IsFailed: true } fail)
             return fail;
 
+        var isScript = src.Element.GetAttributeBool("IsScript", false);
         var runtimeEnv = GetRuntimeEnvironment(src.Element);
-        var fileResults = await UnsafeGetCheckedFiles(src.Element, src.Owner, ".dll");
+        var fileResults = await UnsafeGetCheckedFiles(src.Element, src.Owner, isScript ? ".cs" : ".dll");
         
         if (fileResults.IsFailed)
             return FluentResults.Result.Fail(fileResults.Errors);
@@ -80,7 +81,7 @@ public sealed partial class ModConfigFileParserService :
             IncompatiblePackages =  src.Incompatible,
             // Type Specific
             FriendlyName = src.Element.GetAttributeString("FriendlyName", GetFallbackCompliantAssemblyName(src.Owner)),
-            IsScript = src.Element.GetAttributeBool("IsScript", false),
+            IsScript = isScript,
             UseInternalAccessName = src.Element.GetAttributeBool("UseInternalAccessName", false),
             IsReferenceModeOnly = src.Element.GetAttributeBool("IsReferenceModeOnly", false)
         };
@@ -205,7 +206,7 @@ public sealed partial class ModConfigFileParserService :
 
         var res = new FluentResults.Result<ImmutableArray<ContentPath>>();
         
-        if (!filePath.IsNullOrWhiteSpace())
+        if ((!filePath?.Value.IsNullOrWhiteSpace()) ?? false)
         {
             if (_storageService.FileExists(filePath.FullPath) is { IsSuccess: true, Value: true })
             {
@@ -224,11 +225,12 @@ public sealed partial class ModConfigFileParserService :
             }
         }
 
-        if (!folderPath.IsNullOrWhiteSpace())
+        if ((!folderPath?.Value.IsNullOrWhiteSpace()) ?? false)
         {
             if (_storageService.DirectoryExists(folderPath.FullPath) is { IsSuccess: true, Value: true })
             {
-                var files = _storageService.FindFilesInPackage(srcOwner, folderPath.Value, fileExtension, true);
+                var searchLocation = System.IO.Path.GetRelativePath(srcOwner.Dir, folderPath.Value);
+                var files = _storageService.FindFilesInPackage(srcOwner, searchLocation, "*"+fileExtension, true);
                 if (files.IsFailed)
                 {
                     res.WithError($"{srcOwner.Name}: Failed to load files from {folderPath}!");
