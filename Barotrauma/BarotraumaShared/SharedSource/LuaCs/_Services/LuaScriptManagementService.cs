@@ -368,6 +368,7 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService,
         UserData.RegisterType(typeof(IUserDataDescriptor));
         UserData.RegisterType(typeof(INetworkingService));
         UserData.RegisterType(typeof(ILuaConfigService));
+        UserData.RegisterType(typeof(ILoggerService));
 
         //UserData.RegisterType(typeof(ISettingBase));
 
@@ -451,6 +452,7 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService,
         _script.Globals["Networking"] = _networkingService;
         _script.Globals["trygetpackage"] = (string name, out ContentPackage package) =>
             _packageManagementService.Value.TryGetLoadedPackageByName(name, out package);
+        _script.Globals["Logger"] = _loggerService; 
         //_script.Globals["Steam"] = Steam;
 
         if (enableSandbox)
