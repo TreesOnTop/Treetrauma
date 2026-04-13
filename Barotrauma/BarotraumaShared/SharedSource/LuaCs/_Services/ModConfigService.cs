@@ -335,10 +335,10 @@ public sealed class ModConfigService : IModConfigService
                             .Select(fp => ContentPath.FromRaw(srcPackage, 
                                 $"%ModDir%/{Path.GetRelativePath(srcPackage.Dir, fp)}".CleanUpPathCrossPlatform()))
                             .Concat(sharedFiles).ToImmutableArray(),
-                        FriendlyName = IAssemblyLoaderService.InternalsAwareAssemblyName,
+                        FriendlyName = IAssemblyLoaderService.InternalsAwareAssemblyName, // give the best chance of success (InternalsAware + Publicizer)
                         IncompatiblePackages = ImmutableArray<Identifier>.Empty,
                         RequiredPackages = ImmutableArray<Identifier>.Empty,
-                        UseInternalAccessName = true,
+                        UseInternalAccessName = false,  //compile as public and then fallback to internals
                         IsScript = true,
                         IsReferenceModeOnly = false
                     });

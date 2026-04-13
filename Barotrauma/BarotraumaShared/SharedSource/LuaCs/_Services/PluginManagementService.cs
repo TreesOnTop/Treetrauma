@@ -677,6 +677,8 @@ public class PluginManagementService : IAssemblyManagementService
                     // overwrite result with good compilation
                     if (res2.IsSuccess)
                     {
+                        var reasonsStr = res.Reasons.Aggregate("", (accum, reason) => accum + "\n" + reason.Message);
+                        _logger.LogWarning($"Attempted compilation of {scripts.Key} for package {contentPackRes.Key.Name} succeeded. Original errors were: \n {reasonsStr}");
                         res = res2;
                     }
                 }
