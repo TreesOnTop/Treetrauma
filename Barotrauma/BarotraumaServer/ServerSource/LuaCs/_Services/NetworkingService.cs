@@ -159,11 +159,15 @@ partial class NetworkingService : INetworkingService, IEventClientRawNetMessageR
 
         SendToClient(message, client.Connection, DeliveryMethod.Reliable);
 
-        // TODO: when we move to using GUIDs for everything, this should combined into a single message
-        foreach (INetworkSyncVar netVar in netVars.Keys)
+        // delay by 1s to allow above id sync to reach the client.
+        CoroutineManager.Invoke(() =>
         {
-            SendNetVar(netVar, client.Connection);
-        }
+            // TODO: when we move to using GUIDs for everything, this should combined into a single message
+            foreach (INetworkSyncVar netVar in netVars.Keys)
+            {
+                SendNetVar(netVar, client.Connection);
+            }
+        },1f);
     }
 
     public void SendToClient(IWriteMessage netMessage, NetworkConnection connection = null, DeliveryMethod deliveryMethod = DeliveryMethod.Reliable)

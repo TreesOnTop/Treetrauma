@@ -303,7 +303,7 @@ internal sealed class ModsGameplaySettingsMenu : ModsSettingsMenuBase
                 continue;
             }
 
-            kvp.Key.TrySetValue(kvp.Value);
+            kvp.Key.TrySetSerializedValue(kvp.Value);
             ConfigService.SaveConfigValue(kvp.Key);
         }
         NewValuesCache.Clear();

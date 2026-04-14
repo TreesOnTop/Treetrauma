@@ -152,7 +152,7 @@ public partial class SettingEntry<T> : SettingBase, ISettingBase<T>, INetworkSyn
     
     public override string GetDefaultStringValue() => DefaultValue.ToString();
 
-    public override bool TrySetValue(OneOf<string, XElement> value)
+    public override bool TrySetSerializedValue(OneOf<string, XElement> value)
     {
         bool isFailed = false;
         var typeConvertedValue = value.Match<T>(

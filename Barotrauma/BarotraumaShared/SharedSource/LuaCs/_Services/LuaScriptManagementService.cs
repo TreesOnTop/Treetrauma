@@ -370,7 +370,8 @@ class LuaScriptManagementService : ILuaScriptManagementService, ILuaDataService,
         UserData.RegisterType(typeof(ILuaConfigService));
         UserData.RegisterType(typeof(ILoggerService));
 
-        //UserData.RegisterType(typeof(ISettingBase));
+        UserData.RegisterType(typeof(ISettingBase));
+        UserData.RegisterType(typeof(IDataInfo));
 
         Type[] settingBaseTypes = [
             typeof(ISettingBase<bool>),
