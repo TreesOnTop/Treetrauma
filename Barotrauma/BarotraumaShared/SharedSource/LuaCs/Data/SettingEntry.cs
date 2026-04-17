@@ -33,6 +33,11 @@ public partial class SettingEntry<T> : SettingBase, ISettingBase<T>, INetworkSyn
             ThrowHelper.ThrowArgumentException($"{nameof(ISettingBase<T>)}: The type of {nameof(T)} is not an allowed type.");
         }
         ValueChangePredicate = valueChangePredicate;
+
+        if (ConfigInfo.Element.Attribute("Value") is null)
+        {
+            ThrowHelper.ThrowArgumentException($"The Setting {InternalName} in package {OwnerPackage.Name} does not have a 'Value' attribute!");
+        }
         
         try
         {
@@ -147,10 +152,8 @@ public partial class SettingEntry<T> : SettingBase, ISettingBase<T>, INetworkSyn
     }
 
     public override Type GetValueType() => typeof(T);
-
     public override string GetStringValue() => Value?.ToString() ?? string.Empty;
-    
-    public override string GetDefaultStringValue() => DefaultValue.ToString();
+    public override string GetDefaultStringValue() => DefaultValue?.ToString() ?? string.Empty;
 
     public override bool TrySetSerializedValue(OneOf<string, XElement> value)
     {
@@ -181,7 +184,6 @@ public partial class SettingEntry<T> : SettingBase, ISettingBase<T>, INetworkSyn
                     return default(T);
                 }
             });
-
         return !isFailed && TrySetValue(typeConvertedValue);
     }
 

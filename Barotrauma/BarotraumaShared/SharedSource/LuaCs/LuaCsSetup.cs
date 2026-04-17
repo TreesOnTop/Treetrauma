@@ -269,7 +269,10 @@ namespace Barotrauma
             {
                 var state = CurrentRunState;
                 SetRunState(RunState.Unloaded);
-                SetRunState(state);
+                CoroutineManager.Invoke(() =>
+                {
+                    SetRunState(state);
+                },0.25f);
             });
         }
 
@@ -287,6 +290,7 @@ namespace Barotrauma
             }
             
             this.Logger.LogResults(PackageManagementService.SyncLoadedPackagesList(GetLuaCsEnabledPackagesList(packages)));
+            ConfigService.LoadSavedConfigsValues();
             SetRunState(state); // restore
         }
         
