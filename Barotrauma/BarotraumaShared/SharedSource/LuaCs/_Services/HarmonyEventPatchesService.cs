@@ -140,12 +140,20 @@ internal class HarmonyEventPatchesService : ISystem
     
 #if CLIENT
     [HarmonyPatch(typeof(GameClient), "ReadDataMessage"), HarmonyPrefix]
-    public static void GameClient_ReadDataMessage_Pre(IReadMessage inc)
+    public static bool GameClient_ReadDataMessage_Pre(IReadMessage inc)
     {
         int prevBitPosition = inc.BitPosition;
         ServerPacketHeader header = (ServerPacketHeader)inc.ReadByte();
-        _eventService.PublishEvent<IEventServerRawNetMessageReceived>(x => x.OnReceivedServerNetMessage(inc, header));
+        bool? skip = null;
+        _eventService.PublishEvent<IEventServerRawNetMessageReceived>(x => skip = x.OnReceivedServerNetMessage(inc, header) ?? skip);
+
+        if (skip == true)
+        {
+            return false;
+        }
+
         inc.BitPosition = prevBitPosition; // rewind so the game can read the message
+        return true;
     }
 
     [HarmonyPatch(typeof(SubEditorScreen), nameof(SubEditorScreen.Select), new Type[] { }), HarmonyPostfix]
@@ -177,12 +185,21 @@ internal class HarmonyEventPatchesService : ISystem
 
 #elif SERVER
     [HarmonyPatch(typeof(GameServer), "ReadDataMessage"), HarmonyPrefix]
-    public static void GameServer_ReadDataMessage_Pre(NetworkConnection sender, IReadMessage inc)
+    public static bool GameServer_ReadDataMessage_Pre(NetworkConnection sender, IReadMessage inc)
     {
         int prevBitPosition = inc.BitPosition;
         ClientPacketHeader header = (ClientPacketHeader)inc.ReadByte();
-        _eventService.PublishEvent<IEventClientRawNetMessageReceived>(x => x.OnReceivedClientNetMessage(inc, header, sender));
+
+        bool? skip = null;
+        _eventService.PublishEvent<IEventClientRawNetMessageReceived>(x => skip = x.OnReceivedClientNetMessage(inc, header, sender) ?? skip);
+
+        if (skip == true)
+        {
+            return false;
+        }
+
         inc.BitPosition = prevBitPosition; // rewind so the game can read the message
+        return true;
     }
 
     [HarmonyPatch(typeof(GameServer), "OnInitializationComplete"), HarmonyPostfix]

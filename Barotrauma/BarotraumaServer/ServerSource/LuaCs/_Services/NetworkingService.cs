@@ -35,11 +35,11 @@ partial class NetworkingService : INetworkingService, IEventClientRawNetMessageR
         return message;
     }
 
-    public void OnReceivedClientNetMessage(IReadMessage netMessage, ClientPacketHeader clientPacketHeader, NetworkConnection sender)
+    public bool? OnReceivedClientNetMessage(IReadMessage netMessage, ClientPacketHeader clientPacketHeader, NetworkConnection sender)
     {
         if (clientPacketHeader != ClientHeader)
         {
-            return;
+            return null;
         }
 
         Client client = GameMain.Server.ConnectedClients.First(c => c.Connection == sender);
@@ -64,6 +64,8 @@ partial class NetworkingService : INetworkingService, IEventClientRawNetMessageR
                 RequestIdSingle(netMessage, client);
                 break;
         }
+
+        return true;
     }
 
     private void HandleNetMessageId(IReadMessage netMessage, Client client = null)
@@ -159,15 +161,11 @@ partial class NetworkingService : INetworkingService, IEventClientRawNetMessageR
 
         SendToClient(message, client.Connection, DeliveryMethod.Reliable);
 
-        // delay by 1s to allow above id sync to reach the client.
-        CoroutineManager.Invoke(() =>
+        // TODO: when we move to using GUIDs for everything, this should combined into a single message
+        foreach (INetworkSyncVar netVar in netVars.Keys)
         {
-            // TODO: when we move to using GUIDs for everything, this should combined into a single message
-            foreach (INetworkSyncVar netVar in netVars.Keys)
-            {
-                SendNetVar(netVar, client.Connection);
-            }
-        },1f);
+            SendNetVar(netVar, client.Connection);
+        }
     }
 
     public void SendToClient(IWriteMessage netMessage, NetworkConnection connection = null, DeliveryMethod deliveryMethod = DeliveryMethod.Reliable)
