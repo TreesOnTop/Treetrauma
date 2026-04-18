@@ -525,4 +525,34 @@ public sealed class PackageManagementService : IPackageManagementService
                 .Where(cfg => !cfg.Assemblies.IsDefaultOrEmpty || cfg.LuaScripts.Any(scr => scr.RunUnrestricted))
                 .Select(cfg => cfg.Package)];
     }
+
+    public bool PackageContainsAnyRunnableResource(ContentPackage package)
+    {
+        using var lck = _operationsLock.AcquireReaderLock().ConfigureAwait(false).GetAwaiter().GetResult();
+        IService.CheckDisposed(this);
+
+        var result = GetModConfigForPackage(package);
+
+        if (result.IsSuccess)
+        {
+            return result.Value.Assemblies.Any() || result.Value.LuaScripts.Any();
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    public Result<IModConfigInfo> GetModConfigForPackage(ContentPackage package)
+    {
+        using var lck = _operationsLock.AcquireReaderLock().ConfigureAwait(false).GetAwaiter().GetResult();
+        IService.CheckDisposed(this);
+
+        if (!_loadedPackages.TryGetValue(package, out var modConfig))
+        {
+            return FluentResults.Result.Fail($"Failed to find mod config for package {package.Name}");
+        }
+
+        return new FluentResults.Result<IModConfigInfo>().WithValue(modConfig);
+    }
 }

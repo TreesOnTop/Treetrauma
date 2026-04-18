@@ -26,4 +26,6 @@ public interface IPackageManagementService : IReusableService
     public bool IsPackageRunning(ContentPackage package);
     public bool IsAnyPackageLoaded();
     public bool IsAnyPackageRunning();
+    public bool PackageContainsAnyRunnableResource(ContentPackage package);
+    public Result<IModConfigInfo> GetModConfigForPackage(ContentPackage package);
 }
