@@ -53,7 +53,7 @@ internal class HarmonyEventPatchesService : ISystem
     [HarmonyPatch(typeof(CoroutineManager), nameof(CoroutineManager.Update)), HarmonyPostfix]
     public static void CoroutineManager_Update_Post()
     {
-        _eventService.PublishEvent<IEventUpdate>(x => x.OnUpdate(Timing.TotalTime));
+        _eventService.PublishEvent<IEventUpdate>(x => x.OnUpdate(CoroutineManager.DeltaTime));
         _loggerService.ProcessLogs();
     }
 
