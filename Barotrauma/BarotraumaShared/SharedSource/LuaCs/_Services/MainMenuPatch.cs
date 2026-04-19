@@ -54,18 +54,19 @@ internal class MainMenuPatch : ISystem, IEventScreenSelected
 
             if (mode is "Prompt")
             {
-                mode = "Enabled (prompt mode)";
+                string sessionState = LuaCsSetup.Instance.IsCsEnabledForSession ? "yes" : "no";
+                mode = $"enabled (prompt mode, allowed for this session: {sessionState})";
             }
             else if (mode is "Enabled")
             {
-                mode = "Always enabled";
+                mode = "always enabled";
             }
             else
             {
-                mode = "Disabled";
+                mode = "disabled";
             }
 
-            textBlock.Text = $"LuaCsForBarotrauma active (revision {AssemblyInfo.GitRevision}), csharp is currently {mode}\nNew settings available in the game settings menu.";
+            textBlock.Text = $"LuaCsForBarotrauma active (revision {AssemblyInfo.GitRevision}), C# is currently {mode}\nNew settings available in the game settings menu.";
         };
 
         mainMenuUIAdded = true;
