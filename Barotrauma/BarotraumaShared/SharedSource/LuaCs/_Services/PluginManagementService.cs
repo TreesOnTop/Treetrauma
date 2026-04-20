@@ -836,6 +836,7 @@ public class PluginManagementService : IAssemblyManagementService
         }
 
         _assemblyLoaders.Clear();
+        _storageService.PurgeCache();
         GC.Collect(GC.MaxGeneration, GCCollectionMode.Aggressive, true);
 
 #if DEBUG
