@@ -705,7 +705,7 @@ public class PluginManagementService : IAssemblyManagementService
             {
                 builder.AddRange(BaseMetadataReferencesWithBarotrauma);
                 foreach (var loaderService in _assemblyLoaders
-                             .Where(asl => !asl.Key.Name.Equals("LuaCsForBarotrauma", StringComparison.InvariantCultureIgnoreCase))
+                             .Where(asl => !asl.Key.Name.Equals(LuaCsSetup.PackageName, StringComparison.InvariantCultureIgnoreCase))
                              .ToImmutableArray())
                 {
                     builder.AddRange(loaderService.Value.AssemblyReferences.Where(ar => ar is not null));
