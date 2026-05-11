@@ -370,6 +370,7 @@ public class PluginManagementService : IAssemblyManagementService
         return null;
     }
 
+    [MethodImpl(MethodImplOptions.NoOptimization)]
     public FluentResults.Result ActivatePluginInstances(ImmutableArray<ContentPackage> executionOrder, bool excludeAlreadyRunningPackages = true)
     {
         if (executionOrder.IsDefaultOrEmpty)
@@ -488,6 +489,7 @@ public class PluginManagementService : IAssemblyManagementService
         return results;
 
         // helper
+        [MethodImpl(MethodImplOptions.NoOptimization)]
         FluentResults.Result PluginInitRunner(IAssemblyPlugin plugin, Action<IAssemblyPlugin> action)
         {
             try
