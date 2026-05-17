@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Barotrauma.Extensions;
 using Barotrauma.IO;
@@ -88,8 +89,12 @@ public class PluginManagementService : IAssemblyManagementService
 
     private ImmutableArray<MetadataReference> _baseMetadataReferences = ImmutableArray<MetadataReference>.Empty;
     private ImmutableArray<MetadataReference> _baseMetadataReferencesNonPublicized = ImmutableArray<MetadataReference>.Empty;
-    
-    private static readonly int GC_COLLECT_WAIT_TIME = 2000;
+
+    private static readonly int
+        GC_COLLECT_WAIT_TIME = 1000,
+        GC_BACKGND_MAXITERATIONS = 1,
+        GC_BACKGND_INTERVAL_MILLIS = 500,
+        GC_BACKGND_GENERATION_WAIT_MILLIS = 100;
     
     private IEnumerable<MetadataReference> BaseMetadataReferences
     {
@@ -905,9 +910,31 @@ public class PluginManagementService : IAssemblyManagementService
             _loadedNativeLibraries.Clear();
         }
 
-        RunGC(false);
+        RunGC(false);   // Immediate, Blocking GC
+        Task.Factory.StartNew(RunBackgroundGC); // Non-blocking background GC
         
         return results;
+    }
+    
+    private async Task RunBackgroundGC()
+    {
+        // must be lock-free and thus cannot reference class members.
+        await Task.Delay(GC_BACKGND_INTERVAL_MILLIS);
+        GC.RegisterForFullGCNotification(1, 10);
+        for (int i = 0; i < GC_BACKGND_MAXITERATIONS; i++)
+        {
+            int maxGen = GC.MaxGeneration;
+            for (int gcGen = 0; gcGen < maxGen; gcGen++)
+            {
+                GC.Collect(maxGen, GCCollectionMode.Forced, false, false); // mark objects, run finalizers, promote generation
+                GC.WaitForFullGCComplete(GC_COLLECT_WAIT_TIME);
+                GC.Collect(maxGen, GCCollectionMode.Forced, false, true); // free mem
+                GC.WaitForFullGCComplete(GC_COLLECT_WAIT_TIME);
+                await Task.Delay(GC_BACKGND_GENERATION_WAIT_MILLIS);
+            }
+            await Task.Delay(GC_BACKGND_INTERVAL_MILLIS);
+        }
+        GC.CancelFullGCNotification();
     }
 
     private void RunGC(bool logResults)
