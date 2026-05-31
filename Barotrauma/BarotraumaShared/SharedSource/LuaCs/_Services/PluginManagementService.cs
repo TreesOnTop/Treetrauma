@@ -1009,7 +1009,9 @@ public class PluginManagementService : IAssemblyManagementService
         }
         catch (TimeoutException te)
         {
-            _logger.LogError($"{nameof(RunGC)}: The GC task thread has timed out.");   
+            _logger.LogError($"{nameof(RunGC)}: The GC task thread has timed out.");  
+            gcThread.Interrupt();
+            gcThread.Join();
         }
 
         if (logResults)
