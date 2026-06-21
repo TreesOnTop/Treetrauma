@@ -10,9 +10,9 @@ namespace Barotrauma
 {
     partial class Inventory
     {
-        public const int MaxPossibleStackSize = (1 << 6) - 1; //the max value that will fit in 6 bits, i.e 63
+        public const int MaxPossibleStackSize = (1 << 8) - 1; //the max value that will fit in 6 bits, i.e 63
 
-        public const int MaxItemsPerNetworkEvent = 128;
+        public const int MaxItemsPerNetworkEvent = (1 << 9);
 
         public class ItemSlot
         {

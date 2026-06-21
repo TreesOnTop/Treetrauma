@@ -28,7 +28,7 @@ namespace Barotrauma
         public bool RadiationEnabled { get; set; }
 
         public const int DefaultMaxMissionCount = 2;
-        public const int MaxMissionCountLimit = 10;
+        public const int MaxMissionCountLimit = 50;
         public const int MinMissionCountLimit = 1;
 
         private int maxMissionCount;

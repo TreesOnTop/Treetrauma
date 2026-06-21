@@ -893,11 +893,17 @@ namespace Barotrauma
         {
             if (Type.MissionIdentifiers.Any())
             {
-                UnlockMissionByIdentifier(Type.MissionIdentifiers.GetRandom(randSync), invokingContentPackage: Type.ContentPackage);
+                foreach (var missionIdentifier in Type.MissionIdentifiers)
+                {
+                    UnlockMissionByIdentifier(missionIdentifier, invokingContentPackage: Type.ContentPackage);
+                }
             }
             if (Type.MissionTags.Any())
             {
-                UnlockMissionByTag(Type.MissionTags.GetRandom(randSync), invokingContentPackage: Type.ContentPackage);
+                foreach (var missionTag in Type.MissionTags)
+                {
+                    UnlockMissionByTag(missionTag, invokingContentPackage: Type.ContentPackage);
+                }
             }
         }
 
@@ -969,20 +975,21 @@ namespace Barotrauma
                     {
                         suitableMissions = filteredMissions;
                     }
-                    MissionPrefab missionPrefab = 
-                        random != null ? 
-                        ToolBox.SelectWeightedRandom(suitableMissions, m => m.Commonness, random) :
-                        ToolBox.SelectWeightedRandom(suitableMissions, m => m.Commonness, Rand.RandSync.Unsynced);
+                    List<MissionPrefab> missionPrefabs = suitableMissions.ToList();
 
-                    var mission = InstantiateMission(missionPrefab, out LocationConnection connection);
+                    var missions = missionPrefabs.Select(m => InstantiateMission(m, out LocationConnection connection));
+
                     //don't allow duplicate missions in the same connection
-                    if (AvailableMissions.Any(m => m.Prefab == missionPrefab && m.Locations.Contains(mission.Locations[0]) && m.Locations.Contains(mission.Locations[1])))
+                    foreach (var mission in missions)
                     {
-                        return null;
+                        if (AvailableMissions.Any(m => m.Prefab == mission.Prefab && m.Locations.Contains(mission.Locations[0]) && m.Locations.Contains(mission.Locations[1])))
+                        {
+                            continue;
+                        }
+                        AddMission(mission);
+                        DebugConsole.NewMessage($"Unlocked a random mission by \"{tag}\": {mission.Prefab.Identifier} (difficulty level: {LevelData.Difficulty})", debugOnly: true);
                     }
-                    AddMission(mission);
-                    DebugConsole.NewMessage($"Unlocked a random mission by \"{tag}\": {mission.Prefab.Identifier} (difficulty level: {LevelData.Difficulty})", debugOnly: true);
-                    return mission;
+                    return missions.FirstOrDefault();
                 }
                 else
                 {

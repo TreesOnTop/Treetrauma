@@ -79,7 +79,7 @@ namespace Barotrauma.Items.Components
 
         //how many items can be contained
         private int maxStackSize;
-        [Serialize(64, IsPropertySaveable.No, description: "How many items can be stacked in one slot. Does not increase the maximum stack size of the items themselves, e.g. a stack of bullets could have a maximum size of 8 but the number of bullets in a specific weapon could be restricted to 6.")]
+        [Serialize(256, IsPropertySaveable.No, description: "How many items can be stacked in one slot. Does not increase the maximum stack size of the items themselves, e.g. a stack of bullets could have a maximum size of 8 but the number of bullets in a specific weapon could be restricted to 6.")]
         public int MaxStackSize
         {
             get { return maxStackSize; }

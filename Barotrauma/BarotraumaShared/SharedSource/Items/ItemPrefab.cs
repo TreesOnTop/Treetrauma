@@ -893,7 +893,7 @@ namespace Barotrauma
         public int MaxStackSize
         {
             get { return maxStackSize; }
-            private set { maxStackSize = MathHelper.Clamp(value, 1, Inventory.MaxPossibleStackSize); }
+            private set { maxStackSize = value > 1 ? Inventory.MaxPossibleStackSize : value; }
         }
 
         private int maxStackSizeCharacterInventory;
@@ -901,7 +901,7 @@ namespace Barotrauma
         public int MaxStackSizeCharacterInventory
         {
             get { return maxStackSizeCharacterInventory; }
-            private set { maxStackSizeCharacterInventory = Math.Min(value, Inventory.MaxPossibleStackSize); }
+            private set { maxStackSizeCharacterInventory = maxStackSize = value > 1 ? Inventory.MaxPossibleStackSize : value; }
         }
 
         private int maxStackSizeHoldableOrWearableInventory;
@@ -911,7 +911,7 @@ namespace Barotrauma
         public int MaxStackSizeHoldableOrWearableInventory
         {
             get { return maxStackSizeHoldableOrWearableInventory; }
-            private set { maxStackSizeHoldableOrWearableInventory = Math.Min(value, Inventory.MaxPossibleStackSize); }
+            private set { maxStackSizeHoldableOrWearableInventory = maxStackSize = value > 1 ? Inventory.MaxPossibleStackSize : value; }
         }
 
         public int GetMaxStackSize(Inventory inventory)
